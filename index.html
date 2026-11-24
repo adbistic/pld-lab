@@ -686,6 +686,318 @@ set_property -dict { PACKAGE_PIN H17 IOSTANDARD LVCMOS33 } [get_ports { m }];  #
 </section>
 
 
+<!-- ================= PLD THEORY 1 ================= -->
+<style>
+table.lt td,table.lt th{vertical-align:top;text-align:left}table.lt pre{margin:0;white-space:pre-wrap;font:12.5px/1.5 JetBrains Mono,monospace}.lc{white-space:nowrap;color:var(--acc);font-weight:700}
+</style>
+<section class="page" id="pt1" data-t="1 · Chips & simple PLDs" data-g="PLD theory">
+<h1>PLD theory 1 — from gates to simple programmable chips</h1>
+<p class="lead">Why programmable logic exists, and the first generation: ROM, PLA, PAL and GAL.</p>
+
+<div class="card"><h3>Integration: how many gates on one chip</h3>
+<table class="tt"><tr><th>Name</th><th>Meaning</th><th>Gates</th><th>Transistors</th><th>Example</th></tr>
+<tr><td>SSI</td><td>Small Scale Integration</td><td>1–20</td><td>tens</td><td>single gates (NAND, inverter)</td></tr>
+<tr><td>MSI</td><td>Medium Scale</td><td>20–200</td><td>hundreds</td><td>decoders, multiplexers</td></tr>
+<tr><td>LSI</td><td>Large Scale</td><td>200 – a few thousand</td><td>1k–10k</td><td>arithmetic circuits, RAM</td></tr>
+<tr><td>VLSI</td><td>Very Large Scale</td><td>thousands and more</td><td>100k–1M</td><td>microprocessors</td></tr>
+<tr><td>ULSI</td><td>Ultra Large Scale</td><td>millions</td><td>more</td><td>—</td></tr></table>
+<p>The borders are fuzzy. Chips kept growing, but the name VLSI stayed. In 2017 the largest commercial VLSI devices held over <b>ten billion transistors</b>.</p></div>
+
+<div class="card"><h3>The transistor level (why a NAND is a NAND)</h3>
+<p>A CMOS <b>inverter</b> uses two transistors: a p-channel (Q2) to +3.3 V and an n-channel (Q1) to ground. Input LOW (0 V): Q2 on, Q1 off → output HIGH (3.3 V). Input HIGH: Q2 off, Q1 on → output LOW. A <b>NAND</b> uses four transistors: output is LOW only when both inputs are HIGH.</p>
+<div data-w="drill" data-kind="pld"></div></div>
+
+<div class="card"><h3>Boolean algebra</h3>
+<p>Introduced by <b>George Boole in 1854</b>. In normal algebra a variable is a real number and the main operations are + and −. In Boolean algebra a variable is only <b>true (1)</b> or <b>false (0)</b>, and the three basic operations are:</p>
+<ul><li><b>Conjunction</b> — AND</li><li><b>Disjunction</b> — OR</li><li><b>Negation</b> — NOT</li></ul>
+<p>Venn picture: A AND B = the overlap, A OR B = both circles together, A AND NOT B = the part of A outside B.</p></div>
+
+<div class="card"><h3>What is a programmable logic device?</h3>
+<ul><li>It puts <b>complex logic functions</b> (many gates and flip-flops) on a single chip.</li>
+<li>Like a memory, the gates are organised into <b>regular arrays</b>.</li>
+<li>The array can be configured to do <b>any function without hand-made wiring</b>.</li>
+<li>Software tools map your design onto the array.</li>
+<li>Most are <b>reconfigurable</b>: change the design without changing the hardware — the system can be upgraded.</li></ul>
+<h3>Two big families</h3>
+<table class="tt"><tr><th>Family</th><th>Programmed</th><th>Examples</th></tr>
+<tr><td>Factory-programmable</td><td>only <b>once</b>, at the factory</td><td>ROM, MPGA (mask-programmable gate array)</td></tr>
+<tr><td>Field-programmable</td><td><b>by the user</b>, many times (some only once)</td><td>SPLD (PROM, PLA, PAL, GAL), CPLD, FPGA</td></tr></table>
+<p><b>SPLD</b> = Simple PLD: PROM, PLA, PAL, GAL. Popular in the 1970s–80s because they are simple.</p></div>
+
+<div class="card"><h3>ROM — the first programmable logic</h3>
+<p>A ROM with <b>n input lines</b> and <b>m output lines</b> has <b>2ⁿ words</b>, each <b>m bits</b> long. Example: n = 16, m = 8 → 64 Kbyte ROM.</p>
+<ul><li>Typical use: program storage and fixed data for microprocessors.</li><li>But a 2ⁿ × m ROM can also realise <b>m functions of n variables</b>: it stores a truth table with 2ⁿ rows and m columns. This is exactly lab 5.</li></ul>
+<div class="key"><b>Exercise from the slides</b>An 8-to-3 priority encoder as a ROM needs 8 inputs and 3 outputs → <b>2⁸ × 3 bit ROM</b> (256 words of 3 bits). Notice that most of those rows are "don't care" — a ROM wastes space on them. That is why PLAs were invented.</div></div>
+
+<div class="card"><h3>PLA — Programmable Logic Array</h3>
+<p>Arrived after the ROM. It has a <b>programmable AND array</b> followed by a <b>programmable OR array</b> — a two-level circuit, so it implements <b>SOP (sum-of-products)</b> equations. Only AND and OR gates!</p>
+<ul><li>Inputs (true and complemented) drive the AND array → the AND outputs are the <b>implicants (product terms)</b> → they feed the OR array → the OR outputs are the function outputs.</li>
+<li>An <b>n × p × m PLA</b> has <b>n</b> inputs, <b>p</b> product terms (each AND has 2n inputs) and <b>m</b> outputs (each OR has p inputs).</li>
+<li>Small example from the slides: 4 inputs, 6 AND gates, 3 OR gates.</li></ul>
+<p>Click the crosspoints below to program a PLA yourself ("dot notation": a dot = a connection).</p>
+<div data-w="pla"></div>
+<p><b>Slide example:</b> X = A'B'C + ABC', Y = AB'. The AND array makes three terms, the OR array adds the first two for X and passes the third to Y.</p>
+<p><b>Slide example 2</b> (three inputs, four outputs): F0 = A'B' + AC, F1 = B + AC', F2 = A'B' + BC', F3 = AC + B. Terms are shared: the term <code>AC</code> is used by F0 and F3, so it is built only once.</p></div>
+
+<div class="card"><h3>ROM is a special case of PLA</h3>
+<ul><li>A 2<sup>M</sup>-word × N-bit ROM is simply an M × 2<sup>M</sup> × N-bit PLA.</li>
+<li>The <b>decoder</b> acts as the AND plane: it produces all 2<sup>M</sup> minterms.</li>
+<li>The <b>ROM array</b> acts as the OR plane: it picks which minterms form each output.</li></ul>
+<p>Slide example with address A1 A0: Data2 = A1 ⊕ A0, Data1 = (A1)' + A0, Data0 = A1'A0'.</p>
+<table class="tt"><tr><th></th><th>AND plane</th><th>OR plane</th></tr><tr><td>ROM</td><td>fixed (full decoder)</td><td>programmable</td></tr><tr><td>PLA</td><td>programmable</td><td>programmable</td></tr><tr><td>PAL</td><td>programmable</td><td>fixed</td></tr></table></div>
+
+<div class="card"><h3>PAL — Programmable Array Logic</h3>
+<ul><li>First PALs used <b>bipolar</b> transistor technology.</li>
+<li>Key ideas: a <b>programmable AND array</b>, a <b>fixed OR array</b> and bidirectional input/output pins.</li>
+<li>Programmed with a special tool that <b>blows fuses</b>. The pattern of intact fuses is the circuit.</li>
+<li><b>One-time programmable (OTP)</b>: blown fuses cannot be repaired.</li>
+<li>A typical array = a matrix of conductors (rows and columns) going to AND gates.</li>
+<li>Cheaper than a PLA because only half of it is programmable.</li></ul>
+<p><b>Example from the slides:</b> X = AB + AB' + A'B'. Intact fuses connect A and B to the first AND, A and B' to the second, A' and B' to the third. All three ANDs go to one OR.</p>
+<h3>PAL16L8</h3>
+<p>The programmable AND array has <b>64 rows and 32 columns</b> → 64 × 32 = <b>2048 fuses</b>. The array holds <b>64 AND gates</b>, each with <b>32 inputs</b> (16 variables and their complements). The device has up to <b>16 inputs and 8 outputs</b> — that is what "PAL<b>16</b>L<b>8</b>" means.</p>
+<div class="tip"><b>Simplified drawing</b>In big diagrams a single line with a slash stands for many gate inputs, and an <b>X</b> on a crossing = fuse intact (connected), no X = fuse blown.</div></div>
+
+<div class="card"><h3>GAL — Generic Array Logic</h3>
+<ul><li>Like a PAL but <b>reprogrammable</b>: it uses <b>EEPROM</b> technology instead of fuses.</li>
+<li>It can also contain a few <b>flip-flops</b> and small state machines. The output can be <b>combinational or registered</b>.</li>
+<li>Very fast; interfaces with both 3.3 V and 5 V logic.</li></ul>
+<h3>GAL16V8 and the output logic macrocell (OLM)</h3>
+<p>The GAL16V8 has 8 outputs. Each one has an <b>output logic macrocell</b> that you can set to two modes: <b>combinational</b> (OR gate → output) or <b>registered</b> (OR gate → D flip-flop → output). All flip-flops share the same clock, and each output pin goes through a three-state buffer controlled by a common output-enable signal.</p></div>
+
+<div class="card"><h3>General PLA/GAL block diagram and macrocells</h3>
+<p>Inputs → programmable AND array (PAL: one-time, GAL: reprogrammable) → OR gates → <b>output logic</b> → outputs. An <b>OR gate plus its output logic = a macrocell</b>. The complexity of the macrocell depends on the device. Depending on its setting, an I/O pin can be an input, an output, or both. The small circle on the buffer means <b>negative logic</b> (the output is inverted).</p></div>
+
+<div class="card"><h3>Three-state buffer</h3>
+<p>An output can be <b>0, 1 or high-impedance (Hi-Z)</b>. In Hi-Z the output behaves as if it were <b>not connected at all</b> ("floats").</p>
+<ul><li>Enable asserted → it is a normal <b>buffer</b> or <b>inverter</b>.</li>
+<li>Enable negated → Hi-Z, disconnected.</li>
+<li>Several three-state outputs can <b>share one line</b> — only one may talk at a time (use a decoder to choose which).</li>
+<li>Older FPGAs had three-state elements to drive internal buses. <b>Modern FPGAs do not</b>: inside the chip you use <b>multiplexers</b> to pick one of several sources.</li></ul>
+<div data-w="tri"></div></div>
+<div class="quiz" data-q="pt1"></div>
+</section>
+
+<!-- ================= PLD THEORY 2 ================= -->
+<section class="page" id="pt2" data-t="2 · CPLD and FPGA" data-g="PLD theory">
+<h1>PLD theory 2 — CPLD, FPGA and why we use them</h1>
+<p class="lead">Bigger programmable chips, how they compare with processors and ASICs, and the structure of an FPGA.</p>
+
+<div class="card"><h3>SPLD, CPLD, FPGA in one line each</h3>
+<table class="tt"><tr><th>Device</th><th>What it is</th></tr>
+<tr><td>SPLD</td><td>AND/OR planes extended with flip-flops (depends on the device)</td></tr>
+<tr><td>CPLD</td><td>More integration than an SPLD. Logic is made in a "<b>sea of gates</b>" (AND/OR) like in SPLDs. Several PLDs on the same chip. 500 to 16,000 gates. Uses EEPROM or SRAM.</td></tr>
+<tr><td>FPGA</td><td>An array of <b>Programmable Logic Elements (PLEs)</b> — combinational and sequential logic — with <b>programmable internal connections</b>. Configuration stored in <b>static RAM</b> (Xilinx started this in the late 1980s). Today it can hold millions of gates.</td></tr></table></div>
+
+<div class="card"><h3>Inside a CPLD</h3>
+<ul><li>A CPLD is a collection of several <b>LABs</b> (logic array blocks — also called function block, programmable logic block or generic block) plus an <b>interconnection structure</b>, all on one chip.</li>
+<li>Each LAB is basically an SPLD. <b>Macrocells are grouped by 16</b> to make a LAB.</li>
+<li>The interconnect is the <b>PIA (programmable interconnect array)</b>. It routes signals between LABs and the chip pins. Inputs can go to any LAB and outputs to any other LAB through the PIA.</li>
+<li>The LABs and the PIA are programmed at the same time with a <b>hardware description language</b> (Verilog!) and software.</li>
+<li>Each I/O pin has a programmable <b>tri-state output buffer</b>.</li>
+<li>Makers: Altera (bought by Intel in 2015), Xilinx, Lattice. In the last years nearly every maker has moved to FPGA architecture.</li></ul></div>
+
+<div class="card"><h3>CPLD macrocell: how it makes long equations</h3>
+<ul><li>The example macrocell has <b>5 product terms</b> (five AND gates) feeding an OR gate.</li>
+<li>If an equation has <b>more terms</b> (for example 6), the output can be <b>expanded</b>:
+<ul><li><b>Shared expander</b>: one product term (inverted) is fed back and shared with other macrocells.</li>
+<li><b>Parallel expanders</b>: a macrocell <b>borrows unused product terms</b> from neighbouring macrocells and ORs them with its own.</li></ul></li>
+<li>The product-term selection matrix decides which terms go to the OR.</li>
+<li>After the OR comes an XOR (for + or − logic: it lets you invert the output), then a <b>D flip-flop</b> with muxes for clock, enable, preset and clear. Two modes:
+<ul><li><b>Combinational mode</b>: the flip-flop is bypassed; output = the SOP.</li>
+<li><b>Registered mode</b>: the SOP goes into the flip-flop; output = Q, clocked by the global clock.</li></ul></li></ul></div>
+
+<div class="card"><h3>Three ways to compute</h3>
+<table class="tt"><tr><th></th><th>General-purpose processor (GPP)</th><th>ASIC</th><th>Reconfigurable (FPGA)</th></tr>
+<tr><td>What</td><td>microprocessor you program to solve a task</td><td>chip designed for <b>one unique function</b> (voice recorder, Bitcoin miner)</td><td>hardware you can redefine by downloading a file</td></tr>
+<tr><td>Flexibility</td><td>very high</td><td>poor</td><td>high</td></tr>
+<tr><td>Performance</td><td>lowest</td><td>highest</td><td>high</td></tr>
+<tr><td>Power / size</td><td>—</td><td>small, low power</td><td>medium</td></tr>
+<tr><td>Cost</td><td>low design effort</td><td>very high setup and fabrication cost</td><td>low setup, medium unit price</td></tr></table>
+<p>ASICs have no programmable interconnect delays, so they are fastest — but engineering and setup costs are huge. <b>Reconfigurable computing combines the advantages of general-purpose and application-specific computing.</b> The hardware is replaced just by downloading a new configuration file, not by replacing the chip.</p></div>
+
+<div class="card"><h3>FPGA — Field Programmable Gate Array</h3>
+<ul><li>Since the mid-1980s reconfigurable computing became practical thanks to FPGA technology.</li>
+<li>Early FPGAs: about <b>15 thousand logic gates</b> (a 32-bit adder needs a couple of thousand gates). Today FPGAs hold millions of programmable gates.</li>
+<li>An FPGA is an IC with <b>programmable logic components</b> and <b>programmable interconnects</b> that realise custom digital logic.</li>
+<li>There is <b>no instruction fetch and no program counter</b> at run time. It is custom hardware, not a processor running code.</li>
+<li>It can be <b>reconfigured many times</b>: a new configuration = a new application.</li>
+<li>The logic blocks (all identical) are surrounded by programmable interconnections arranged in <b>rows and columns</b>. The matrix of programmable interconnects connects the blocks and connects them to the chip's inputs and outputs.</li>
+<li>Design entry: <b>hardware description languages</b> or <b>schematics</b>.</li>
+<li>They implement <b>multi-level logic</b> (PLAs have only two levels).</li>
+<li>Modern FPGAs also contain: <b>built-in multipliers</b>, analog-to-digital converters, large <b>RAM</b> arrays and even physical <b>processors</b> (e.g. ARM).</li>
+<li>Two leading makers: Altera (Intel) and Xilinx.</li></ul>
+<div data-w="fpgagrid"></div></div>
+
+<div class="card"><h3>Advantages and disadvantages</h3>
+<div class="grid"><div class="card"><b>Advantages</b><ul><li>Less manufacturing time than mask gate arrays (MPGAs)</li><li>Easier design</li><li>Cheap to correct design mistakes or specification changes</li><li>Low prototyping cost</li><li>At low volumes cheaper than MPGAs</li></ul></div>
+<div class="card"><b>Disadvantages</b><ul><li>Less dense than MPGAs</li><li>Many resources are needed to be programmable</li><li>MPGAs have better performance</li><li><b>Interconnect delays are unpredictable</b></li><li>PLDs are simpler and cheaper; CPLDs are faster, cheaper and have predictable timing</li></ul></div></div></div>
+
+<div class="card"><h3>Comparing the devices</h3>
+<div class="scroll"><table class="tt"><tr><th></th><th>SPLD</th><th>CPLD</th><th>FPGA</th></tr>
+<tr><td>Density</td><td>low, a few hundred gates</td><td>low to medium, 500–12,000 gates</td><td>medium to high, 3,000–5,000,000 gates</td></tr>
+<tr><td>Timing</td><td>predictable</td><td>predictable</td><td><b>unpredictable</b></td></tr>
+<tr><td>Cost</td><td>low</td><td>low to medium</td><td>medium to high</td></tr>
+<tr><td>Vendors</td><td>Lattice, Cypress, AMD</td><td>Xilinx, Altera</td><td>Xilinx, Altera, Lattice, Microsemi</td></tr>
+<tr><td>Families</td><td>GAL16LV8, GAL22V10, PALCE16V8, 22V10</td><td>Xilinx CoolRunner, XC9500; Altera MAX</td><td>Xilinx Kintex, Artix, Virtex, Spartan; Altera Stratix, Cyclone, Arria; Lattice Mach, ECP; Microsemi Axcelerator, Fusion</td></tr></table></div>
+<p>Scale from simple to powerful: off-the-shelf gates and flip-flops → PAL/PLA/PLD → CPLD → <b>FPGA</b> (your Nexys4 DDR) → mask gate arrays → custom ASIC. More density and customisation costs more time and money.</p></div>
+
+<div class="card"><h3>Where FPGAs are used, and why they are fast</h3>
+<ul><li><b>Applications:</b> cars (a Mercedes S-class has over a dozen Xilinx FPGAs for entertainment, navigation and cruise control), medical equipment (PET/CT), media players.</li>
+<li><b>Vector mathematics:</b> a microprocessor must treat every number one after another. An FPGA can be configured to do many operations <b>at the same time (in parallel)</b>. Example: a 128-element matrix operation as a 128-unit arithmetic pipeline where all operations run simultaneously → a huge gain in performance and power.</li></ul>
+<div data-w="parallel"></div></div>
+
+<div class="card"><h3>FPGA architecture: CLB → slice → PLE</h3>
+<ul><li>The main parts: <b>logic blocks</b> (Altera: LAB; Xilinx: <b>CLB, configurable logic block</b>), the <b>programmable interconnect</b>, and <b>I/O blocks</b> around the edge.</li>
+<li>A CLB can do <b>combinational or sequential</b> functions. CLBs are less complex than CPLD LABs, but there are <b>many more</b> of them. FPGAs do not use PAL/PLA arrays at all.</li>
+<li>In Xilinx FPGAs a CLB contains <b>slices</b>; a slice contains smaller <b>logic cells / programmable logic elements (PLEs)</b>, the basic building units.</li>
+<li>Slices per CLB: 2 in Virtex-E, Virtex-5 and the 7-series, 4 in Virtex-II Pro and Virtex-4.</li>
+<li>Most LUT-based FPGAs use a <b>4-variable LUT (LUT4)</b> plus one or more <b>flip-flops</b> as the basic element.</li>
+<li>Your board (7-series): <b>each CLB has 2 slices, each slice has 4 PLEs, each PLE has one 6-input LUT and 2 flip-flops.</b> PLEs share control signals and are linked by an internal <b>carry chain</b>.</li></ul>
+<div data-w="hier"></div></div>
+<div class="quiz" data-q="pt2"></div>
+</section>
+
+<!-- ================= PLD THEORY 3 ================= -->
+<section class="page" id="pt3" data-t="3 · LUTs and logic elements" data-g="PLD theory">
+<h1>PLD theory 3 — inside the FPGA logic element</h1>
+<p class="lead">The LUT is the heart of an FPGA: a tiny memory that stores a truth table. This page shows how it works, how big functions are split, and what else lives in a logic element.</p>
+
+<div class="card"><h3>Programmable logic element (PLE)</h3>
+<ul><li>A logic module in an FPGA that can be configured for <b>combinational logic</b>, <b>sequential (registered) logic</b>, or a combination.</li>
+<li>A <b>flip-flop</b> is the part for sequential logic.</li>
+<li>A <b>LUT (look-up table)</b> is a programmable memory used to generate combinational functions.</li>
+<li>A LUT with <b>n</b> inputs has <b>2ⁿ memory cells</b>. A 4-input LUT = 16 cells; a 6-input LUT = 64 cells.</li></ul>
+<p>A typical PLE: 4-input LUT → (y) combinational output → mux → flip-flop → q. Extra input <i>e</i>, plus clock, clock enable and set/reset.</p></div>
+
+<div class="card"><h3>LUT = a truth table in memory</h3>
+<p>In Xilinx FPGAs a LUT is a small <b>read/write memory</b> that is loaded with a <b>truth table</b> when the chip is configured. The input signals are used as an <b>index (pointer)</b> into the table. Each stored <b>1</b> means "this product term (minterm) appears in the SOP output"; a stored <b>0</b> means it does not.</p>
+<ul><li>Each memory cell is connected to a <b>multiplexer</b> that reads the output. The inputs A, B, C, D are the multiplexer's select lines: with 4 inputs you address 2⁴ = 16 cells.</li>
+<li>Example from the slides: a 4-input LUT (16×1 RAM) holds the truth table of <code>F = AB + CD'</code>, which is the same as two ANDs and an OR.</li></ul>
+<p>Build one yourself — click the 16 memory cells, set the inputs, and watch the multiplexer pick a cell:</p>
+<div data-w="lut"></div>
+<div class="key"><b>Slide example (3 variables)</b>Y = A2·A1·A0' + A2·A1'·A0' + A2'·A1·A0 + A2'·A1'·A0 (+ …). Set cells 0, 2, 7 … to 0 and the cells of the listed terms to 1. Pattern from the slide: 0, 1, 0, 1, 1, 1, 1, 0.</div></div>
+
+<div class="card"><h3>More tricks with LUTs</h3>
+<ul><li>A LUT can also be configured as a small <b>RAM</b>. In the 7-series a LUT is a <b>64×1 or 32×2 SRAM</b>. Tools can combine several LUTs into larger "distributed RAM".</li>
+<li><b>Shift register (SRL):</b> each LUT memory bit is basically a 1-bit latch. Using the special SRL configuration, a single LUT's 64 latches (two per bit) can form a <b>32-bit shift register</b> (serial-in, serial-out) — one of the few fully programmable-length shift registers. It stays in the same slice.</li>
+<li>Around the LUT sits the <b>interconnect logic</b> that routes signals to and from other blocks.</li></ul></div>
+
+<div class="card"><h3>Functions with more inputs: decomposition</h3>
+<ul><li>A 6-input LUT realises any function of up to 6 inputs (4 on older chips). What about 7 inputs?</li>
+<li>The key task of the synthesis tool is to <b>"decompose"</b> big functions into an interconnected group of smaller functions that each fit in a LUT.</li>
+<li>Tools use <b>Shannon decomposition</b>: <code>F(X1,…,Xn) = X1 · F(1,X2,…,Xn) + X1' · F(0,X2,…,Xn)</code>. So a function of n inputs becomes <b>two functions of n−1 inputs</b> plus a 2:1 mux driven by X1.</li></ul>
+<div data-w="shannon"></div>
+<p><b>Slide example:</b> Y = JKLMPQR (a 7-input AND). LE 1 (a 4-input LUT) computes X = J·K·L·M. LE 2 computes Y = X·P·Q·R. The routing links the output of LE 1 to an input of LE 2.</p></div>
+
+<div class="card"><h3>Altera Cyclone IV logic element (LE)</h3>
+<ul><li>Several multiplexers, <b>one 4-input LUT</b>, one flip-flop, and a registered output.</li>
+<li>Inputs data1–data4 come from I/O elements or other LEs. Depending on configuration the LUT may receive <b>data3</b> or the <b>LE's own register output</b> (feedback).</li>
+<li>The LUT output goes either directly to the LE output (combinational) or through the flip-flop (registered).</li>
+<li>Extras: <b>carry chain</b> for fast addition, synchronous load/clear logic, asynchronous clear, clock and clock-enable select.</li></ul>
+<p><b>FSM example (divide-by-3 counter, binary encoding):</b> 3 states S0, S1, S2 need <b>2 flip-flops</b>. In general an FSM needs at least <b>one flip-flop per state bit</b>, and more PLEs if the next-state or output logic is too complex for one LUT. Each state bit gets one LE: its LUT holds the next-state truth table and the flip-flop holds the state bit.</p></div>
+
+<div class="card"><h3>Xilinx 7-series PLE in detail</h3>
+<ul><li>The LUT has <b>6 inputs and 2 outputs</b>. <b>O6</b> can perform any logic function of A[6:1]. Alternatively, when A6 is tied to constant 1, <b>O6 and O5</b> are <b>two independent functions</b> of A[5:1] (the 5-input halves).</li>
+<li>Two small 2-input multiplexers control the <b>CARRY4</b> carry chain, which runs vertically through the 4 PLEs of a slice.</li>
+<li>There is a dedicated combinational output <b>B</b> (the LUT's O6). A second combinational output <b>BMUX</b> is chosen by a mux from: the left flip-flop, COUT, the XOR output, O5 or O6. The third output <b>BQ</b> is the output of the second flip-flop. <b>COUT</b> is the carry out at the top.</li>
+<li><b>First storage element:</b> a D flip-flop whose D can come from BX or the LUT's O5.<br><b>Second storage element:</b> a D flip-flop <i>or a D latch</i>; its D can come from BX, O5, O6, the XOR output or COUT.</li>
+<li>All storage elements in a slice share the same <b>clock CLK</b> (programmable active-high or active-low) and an active-high <b>clock enable CE</b>.</li>
+<li>They can be set or reset by a common <b>SR (set-reset) signal</b>. The whole slice is programmed to be <b>synchronous or asynchronous</b> reset. The <b>initial state</b> of each element (0 or 1) is also programmable and applied at start-up.</li></ul>
+<div class="tip"><b>Why this matters for your Verilog</b>When you write <code>always @(posedge clk) if (rst) …</code> Vivado maps it to these flip-flops and chooses the sync/async reset type for the whole slice. Mixing sync and async resets in one slice wastes flip-flops.</div></div>
+
+<div class="card"><h3>CARRY4 and the ripple-carry adder</h3>
+<ul><li>CARRY4 is a <b>4-bit ripple-carry chain</b>. In larger adders the carry also ripples between multiple CARRY4 elements.</li>
+<li>Despite the long chain, CARRY4 gives <b>very fast addition</b>: a clever signal topology and fast technology, inside and between CARRY4 elements. The delay is much lower than normal programmable routing between LUTs.</li>
+<li>Inputs: carry-select bits <b>S[3:0]</b>, data inputs <b>DI[3:0]</b>, carry in <b>CIN</b>. Outputs: the XOR outputs <b>O[3:0]</b>, carry outputs <b>CO[3:0]</b>, and the slice carry output <b>COUT</b>.</li></ul>
+<h3>Ripple-carry adder</h3>
+<p>Chain 1-bit full adders: the carry <b>ripples through the whole chain</b>. Disadvantage: <b>slow</b>. <code>t<sub>ripple</sub> = N · t<sub>FA</sub></code> where t<sub>FA</sub> is the delay of one full adder. Compare it with the CARRY4 chain:</p>
+<div data-w="ripple"></div></div>
+<div class="quiz" data-q="pt3"></div>
+</section>
+
+<!-- ================= PLD THEORY 4 ================= -->
+<section class="page" id="pt4" data-t="4 · Programming technologies & JTAG" data-g="PLD theory">
+<h1>PLD theory 4 — how a chip is "programmed"</h1>
+<p class="lead">What programming really means, the four technologies (fuse, antifuse, EPROM/Flash, SRAM), the bitstream file, and the JTAG port you use every time you press "Program device".</p>
+
+<div class="card"><h3>What does "programming" mean?</h3>
+<ul><li><b>Programming the logic blocks:</b> selecting (or not selecting) particular gates in AND-OR blocks, changing the <b>look-up table contents</b>, and giving input and control signals to the blocks (the select signals of LUT multiplexers and flip-flops).</li>
+<li><b>Programming the interconnections:</b> making or breaking specific connections between logic blocks and I/Os, so that signals travel from the right place to the right place.</li>
+<li><b>Programming the I/O blocks:</b> each pin can be input, output or bidirectional, with its own <b>I/O voltage standard</b> (for example LVCMOS33 in your XDC file).</li></ul>
+<table class="tt"><tr><th>Technology</th><th>Used in</th></tr><tr><td>Fuse-link</td><td>PAL</td></tr><tr><td>Antifuse</td><td>some Microsemi (Actel) FPGAs</td></tr><tr><td>EPROM / EEPROM / Flash</td><td>GAL, CPLD, some FPGAs</td></tr><tr><td>Static RAM (SRAM)</td><td>most FPGAs, including your Artix-7</td></tr></table>
+<p><b>Example — configuration of one logic cell:</b> a 4-input LUT is based on <b>16 configuration cells</b>. The multiplexer needs a configuration cell to say which input is selected. The register needs cells to say: flip-flop or latch; triggered by positive or negative clock edge (or active-low/active-high enable for a latch); and initial value 0 or 1.</p></div>
+
+<div class="card"><h3>Fuse-link</h3>
+<ul><li>Devices are made with <b>all links in place</b>; the links are <b>fuses</b>. A new device has all fuses intact.</li>
+<li>Programming = selectively removing unwanted fuses with <b>pulses of high voltage and current</b> that <b>burn</b> (blow) the fuses. Pull-up resistors make an AND input with a blown fuse look like logic 1.</li>
+<li><b>One-time programmable (OTP)</b> and <b>nonvolatile</b>: the programming stays when power is off.</li>
+<li>Used in <b>PAL</b> devices. Not used in today's FPGAs.</li></ul></div>
+
+<div class="card"><h3>Antifuse</h3>
+<ul><li>The opposite of a fuse. Each configurable path has an <b>antifuse link</b>. Unprogrammed it has <b>high resistance</b> (an open circuit). Applying a high voltage changes it to <b>low resistance (closed)</b>.</li>
+<li>OTP: connections are created permanently and the process is irreversible.</li>
+<li>The device sits in a special <b>programmer</b>; the <b>configuration (bit) file</b> is uploaded from the host computer. Think of each antifuse as having a virtual x-y location on the chip: one group of I/O pins selects x, another selects y.</li>
+<li><b>Advantages:</b> the configuration is buried deep inside the chip, so it is almost impossible to <b>reverse-engineer</b>; low power compared with SRAM devices; very small cell; radiation hard.</li></ul></div>
+
+<div class="card"><h3>EPROM / EEPROM / Flash</h3>
+<ul><li>Nonvolatile. An EPROM/EEPROM <b>transistor cell</b> is a standard MOS transistor plus a second polysilicon <b>floating gate</b> isolated by oxide.</li>
+<li>To program it, a relatively high voltage (about 12 V) is applied between the control gate and drain: the transistor is <b>turned hard on</b> (charge is trapped on the floating gate).</li>
+<li>They have relatively <b>high static power consumption</b>. Reprogramming speed is about 3× slower than SRAM. Reprogrammable in-system or offline. One or more generations behind in technology.</li></ul></div>
+
+<div class="card"><h3>SRAM — the technology of your FPGA</h3>
+<ul><li>Logic blocks, I/O blocks and interconnects are programmed by <b>configuration bits stored in SRAM</b>. The bits decide the LUT contents and the interconnect.</li>
+<li>Key idea: use <b>pass transistors</b> as switches and control them from the SRAM content. SRAM cell = 0 → pass transistor <b>OFF</b> (no connection between A and B). SRAM cell = 1 → <b>ON</b> (closed path). A mux whose select lines come from SRAM cells chooses which wire (P, Q, R or S) goes to point X.</li>
+<li><b>Reconfigurability = changing the contents of memory cells.</b> Xilinx FPGAs were the first to use SRAM.</li></ul>
+<div data-w="sram"></div>
+<h3>Configuring an SRAM FPGA</h3>
+<ul><li>All configuration cells can be seen as one <b>single long shift register</b>. Programming takes a "significant" amount of time that depends on the number of cells. Example: 25 million cells, serial mode, 5 MHz → <b>5 seconds</b>.</li>
+<li>SRAM is <b>volatile</b>: the data is <b>lost when power is turned off</b>. So the FPGA either has an embedded <b>nonvolatile configuration memory</b> (e.g. flash, a "boot ROM") that reloads it at every power-up, or an external memory, or a host processor does the transfer.</li>
+<li><b>Master mode:</b> the FPGA loads itself from a nonvolatile memory on the board (on your Nexys: the SPI flash). <b>Slave mode:</b> an external device (processor or microcontroller, or the PC through JTAG) pushes the data in.</li></ul>
+<div class="grid"><div class="card"><b>SRAM advantages</b><ul><li>Reprogram any number of times</li><li>Relatively fast</li><li>Same CMOS technology as the rest of the chip</li></ul></div>
+<div class="card"><b>SRAM disadvantages</b><ul><li>A cell takes <b>six transistors</b>. An FPGA with 1 million programmable points needs 6 million transistors just for configuration.</li><li>Volatile: needs a boot memory</li></ul></div></div></div>
+
+<div class="card"><h3>Technology summary</h3>
+<div class="scroll"><table class="tt"><tr><th>Feature</th><th>SRAM</th><th>Antifuse</th><th>E²PROM / Flash</th></tr>
+<tr><td>Technology node</td><td>state of the art</td><td>1+ generations behind</td><td>1+ generations behind</td></tr>
+<tr><td>Reprogrammable</td><td>yes (in system)</td><td>no</td><td>yes (in-system or offline)</td></tr>
+<tr><td>Reprogramming speed</td><td>fast</td><td>—</td><td>3× slower than SRAM</td></tr>
+<tr><td>Volatile</td><td>yes</td><td>no</td><td>no</td></tr>
+<tr><td>Needs external configuration file</td><td>yes</td><td>no</td><td>no</td></tr>
+<tr><td>Good for prototyping</td><td>yes (very good)</td><td>no</td><td>yes (reasonable)</td></tr>
+<tr><td>Instant-on</td><td>no</td><td>yes</td><td>yes</td></tr>
+<tr><td>IP security</td><td>acceptable (with bitstream encryption)</td><td>very good</td><td>very good</td></tr>
+<tr><td>Cell size</td><td>large (6 transistors)</td><td>very small</td><td>medium-small (2 transistors)</td></tr>
+<tr><td>Power</td><td>medium</td><td>low</td><td>medium</td></tr>
+<tr><td>Radiation hard</td><td>no</td><td>yes</td><td>not really</td></tr></table></div>
+<p><b>Commercial FPGAs:</b> Microsemi IGLOO (flash), ProASIC (flash, SRAM), SX (antifuse), Axcelerator (SRAM), Fusion (flash, SRAM); Xilinx Kintex / Virtex / Spartan (SRAM, LUT, symmetrical array); Altera Cyclone II, Stratix II, APEX II (SRAM, LUT); QuickLogic Eclipse II, PolarPro (SRAM).</p></div>
+
+<div class="card"><h3>The bitstream file</h3>
+<ul><li>The file with the information that is copied into the configuration SRAM is the <b>bitstream</b> (<code>.bit</code> in Vivado). The configuration memory is arranged in <b>frames</b> — the smallest addressable pieces of configuration memory.</li>
+<li>A <b>full bitstream</b> configures the whole device. <b>Partial bitstreams</b> configure only a part, useful for <b>partial reconfiguration</b> (change one region while the rest keeps running).</li>
+<li>Structure of a full bitstream (click the parts):</li></ul>
+<div data-w="bitstream"></div>
+<ul><li>Inside the chip is <b>configuration logic</b> that interprets the bitstream. A set of <b>configuration registers</b> defines the state of that logic; each register controls one feature. They are the only memory the bitstream has direct access to. Data is written first into the registers and then copied to the configuration memory.</li></ul></div>
+
+<div class="card"><h3>JTAG</h3>
+<ul><li><b>JTAG (Joint Test Action Group)</b>, IEEE Std 1149.1, was designed for <b>testing circuit boards and ICs</b> with the <b>boundary scan</b> technique. Most programmable devices are JTAG-compliant.</li>
+<li>It can do much more: special commands are loaded into a command register. One command connects the FPGA's internal configuration shift register to the JTAG chain — so the JTAG port is used to <b>program the FPGA</b>. JTAG is used for both programming and testing.</li>
+<li>Older boards needed a JTAG programmer cable. On newer ones (like the Nexys4 DDR) programming goes through the <b>USB-JTAG</b> port, and a JTAG header is also there. This is what Vivado's <i>Hardware Manager → Auto Connect</i> uses.</li></ul>
+<h3>Boundary scan elements</h3>
+<table class="tt"><tr><th>Part</th><th>Job</th></tr>
+<tr><td>Boundary scan register</td><td>one cell (BSC) per I/O pin, daisy-chained. Serial input = <b>TDI</b>, serial output = <b>TDO</b></td></tr>
+<tr><td>Bypass register</td><td>a 1-bit shortcut so data skips a device</td></tr>
+<tr><td>Instruction register</td><td>stores instructions for the boundary scan operations</td></tr>
+<tr><td>Identification register (optional)</td><td>stores a code that identifies the device</td></tr>
+<tr><td>Test Access Port (TAP)</td><td>the four test pins below plus the TAP controller</td></tr></table>
+<table class="tt"><tr><th>Pin</th><th>Name</th><th>Does</th></tr><tr><td>TDI</td><td>Test Data In</td><td>shifts test and programming data and instructions in</td></tr><tr><td>TDO</td><td>Test Data Out</td><td>shifts data and instructions out</td></tr><tr><td>TMS</td><td>Test Mode Select</td><td>switches the TAP controller between states (instruction or data shifting)</td></tr><tr><td>TCK</td><td>Test Clock</td><td>timing for the TAP controller, data registers and instruction register</td></tr></table>
+<p>A <b>boundary scan cell</b> has two identical circuits, each with two flip-flops (capture and update) and two multiplexers. Five modes: (1) shift data serially from the previous cell to the next; (2) internal logic → output pin; (3) input pin → internal logic; (4) serial input → internal logic and to the serial output; (5) serial input → output pin and to the serial output.</p>
+<h3>Testing multiple devices</h3>
+<p>Devices on a board are chained: TDO of one goes to TDI of the next. A bit is shifted into TDI of device 1 through all devices to the last TDO. <b>If the bit coming out equals the bit that went in, the scan cells and the interconnections are good.</b> Try it:</p>
+<div data-w="jtag"></div></div>
+<div class="quiz" data-q="pt4"></div>
+</section>
+
 <!-- ================= BOARD ================= -->
 <section class="page" id="board" data-t="Board pins &amp; XDC file" data-g="Theory">
 <h1>Nexys4 DDR pins &amp; the XDC file</h1>
@@ -2299,6 +2611,82 @@ add("bits",[["A wire carrying 1 on this board is about…",["3.3 V","0 V","12 V"
 add("gates",[["AND gives 1 when…",["all inputs are 1","any input is 1","inputs differ","no input is 1"],0,"All must be 1."],["XOR of 1 and 1?",["0","1","x","2"],0,"XOR = 1 only when inputs differ."],["NAND is…",["AND followed by NOT","OR followed by NOT","two ANDs","XOR"],0,"Output is 0 only when all inputs are 1."],["Verilog symbol for OR?",["|","&","^","~"],0,"& AND, ^ XOR, ~ NOT."],["Which gate alone can build every circuit?",["NAND","AND","OR","XOR"],0,"NAND (and NOR) are universal."]]);
 add("fpga",[["A LUT is…",["a small truth table stored in memory","a clock","a pin","a wire"],0,"Look-up table: any function of its inputs."],["What is a bitstream?",["The file that configures the FPGA","A waveform","A testbench","An XDC"],0,"Vivado generates it last."],["Order of the Vivado flow?",["Synthesis → Implementation → Bitstream","Bitstream → Synthesis","Implementation → Synthesis","Simulation → Bitstream only"],0,"Simulation is optional but wise before it."],["After power-off an FPGA…",["forgets its configuration","keeps it forever","burns out","resets the PC"],0,"Configuration is stored in RAM cells."]]);
 })();
+(function(){const Q=window.QUIZ;
+Q.pt1=[
+["SSI, MSI, LSI, VLSI differ in…",["how many gates are on one chip","the supply voltage","the clock speed","the package colour"],0,"SSI 1–20 gates … VLSI thousands and more."],
+["Which operations make Boolean algebra?",["AND, OR, NOT","+, −, ×","sin, cos, tan","shift, rotate"],0,"Conjunction, disjunction, negation."],
+["Boolean algebra was introduced by…",["George Boole in 1854","Shannon in 1948","Moore in 1965","Turing in 1936"],0,"Hence the name Boolean."],
+["Which one is factory-programmable (only once)?",["ROM / mask gate array","FPGA","CPLD","GAL"],0,"Field-programmable devices are programmed by the user."],
+["A ROM with n inputs and m outputs has…",["2ⁿ words of m bits","n words of 2ᵐ bits","n×m words","2ⁿ×2ᵐ words"],0,"One word per input combination."],
+["An 8-to-3 priority encoder built as a ROM needs…",["2⁸ × 3 bits","2³ × 8 bits","8 × 3 bits","2⁸ × 8 bits"],0,"8 address bits, 3 data bits."],
+["A PLA has…",["a programmable AND array and a programmable OR array","a fixed AND and programmable OR","only flip-flops","only an OR array"],0,"Both planes are programmable."],
+["A PAL has…",["programmable AND, fixed OR","fixed AND, programmable OR","both fixed","both programmable"],0,"That is why it is cheaper than a PLA."],
+["Which array is the ROM's AND plane?",["a fixed decoder making all minterms","a programmable AND array","a flip-flop array","a multiplexer"],0,"A ROM is a special PLA."],
+["PAL16L8: how many fuses are in the AND array?",["2048","512","256","16"],0,"64 rows × 32 columns."],
+["PAL16L8 name means…",["up to 16 inputs and 8 outputs","16 gates and 8 flip-flops","16 MHz and 8 V","16 pins and 8 LEDs"],0,"Inputs first, then outputs."],
+["Fuse-based PALs are…",["one-time programmable","reprogrammable with EEPROM","volatile","SRAM based"],0,"Blown fuses cannot be repaired."],
+["What does a GAL use instead of fuses?",["EEPROM (reprogrammable)","antifuses","SRAM","mask ROM"],0,"So it can be erased and reprogrammed."],
+["GAL16V8 outputs can be set (OLM) as…",["combinational or registered","analog or digital","input only","clock only"],0,"OR gate to pin, or OR gate to D flip-flop to pin."],
+["Hi-Z means…",["the output is disconnected (floats)","logic 1","logic 0","a short circuit"],0,"Third state of a three-state buffer."],
+["Why do modern FPGAs not use three-state buses inside?",["They select sources with multiplexers","Tri-state is too slow","It is illegal in Verilog","FPGAs have no buses"],0,"Three-state exists only at the pins."]];
+Q.pt2=[
+["A CPLD is built from…",["several LABs and a programmable interconnect (PIA)","one big LUT","a row of CPUs","only flip-flops"],0,"Each LAB is basically an SPLD."],
+["How many macrocells form one LAB in the slide's CPLD?",["16","4","64","2"],0,"Macrocells are grouped by 16."],
+["What does PIA stand for?",["programmable interconnect array","parallel input adapter","pin interface area","product input array"],0,"It routes signals between LABs and pins."],
+["How many product terms does the example CPLD macrocell make?",["5","2","16","64"],0,"Five AND gates feed the OR."],
+["How does a macrocell implement an equation with 6 product terms?",["by borrowing terms with expanders","it cannot","by adding a LUT","by slowing the clock"],0,"Shared and parallel expanders."],
+["Combinational mode of a macrocell means…",["the flip-flop is bypassed","the output is registered","the clock is stopped","the OR is removed"],0,"Registered mode uses the flip-flop."],
+["An ASIC compared with an FPGA has…",["higher performance but poor flexibility","lower performance","the same cost","no cost"],0,"High fabrication cost, no reconfiguration."],
+["Reconfigurable computing is…",["a mix of general-purpose and application-specific computing","only software","the same as an ASIC","a type of memory"],0,"Hardware changes by downloading a file."],
+["An FPGA executes…",["custom hardware, with no instruction fetch or program counter","instructions from a program counter","only interrupts","BASIC"],0,"Unlike a processor."],
+["Interconnect delays in FPGAs are…",["unpredictable","exactly known","zero","always 1 ns"],0,"CPLDs have predictable timing."],
+["Typical gate range of an FPGA in the slide's table?",["3,000 to 5,000,000 gates","a few hundred","500 to 12,000","exactly 15,000"],0,"A CPLD is 500–12,000."],
+["Which feature do modern FPGAs include?",["built-in multipliers, RAM and sometimes processors","only AND gates","no memory","tri-state buses inside"],0,"Plus ADCs in some devices."],
+["Why is an FPGA fast at vector mathematics?",["many operations run at the same time (in parallel)","its clock is always faster","it has no logic delays","it skips additions"],0,"128 operations in one step."],
+["Xilinx calls a logic block…",["CLB (configurable logic block)","LAB","PIA","OLM"],0,"Altera calls it LAB."],
+["In your 7-series FPGA, one CLB contains…",["2 slices","4 slices","1 LUT only","16 LABs"],0,"Each slice has 4 PLEs."],
+["Which is NOT an advantage of FPGAs over mask gate arrays?",["higher density","easier design","lower prototyping cost","cheap design corrections"],0,"FPGAs are less dense than MPGAs."]];
+Q.pt3=[
+["A LUT with 4 inputs stores…",["16 bits","4 bits","8 bits","64 bits"],0,"2⁴ memory cells."],
+["A 6-input LUT stores…",["64 bits","6 bits","32 bits","36 bits"],0,"2⁶ = 64."],
+["In a LUT, the input signals are used as…",["the address (index) into the stored truth table","the clock","the data","the reset"],0,"A multiplexer reads the selected cell."],
+["Stored 1 in a LUT cell means…",["that minterm appears in the output","that minterm is off","the cell is broken","a latch"],0,"It is a truth-table 1."],
+["A LUT can also be configured as…",["a small RAM or a 32-bit shift register","a clock","a PLL","a pin"],0,"64×1, 32×2 RAM or SRL."],
+["To realise a 7-input function the tool…",["decomposes it into smaller LUT functions","buys a bigger chip","fails","uses a PAL"],0,"Often with Shannon decomposition."],
+["Shannon decomposition writes F as…",["x·F(1,…) + x'·F(0,…)","F + F","x ⊕ F","F(x) · F(x')"],0,"Two smaller functions and a 2:1 mux."],
+["In the slide, Y = JKLMPQR (7 inputs) is built from…",["two 4-input LEs","one 7-input LUT","a PAL","three flip-flops"],0,"X = JKLM first, then Y = X·P·Q·R."],
+["A Cyclone IV logic element has…",["one 4-input LUT and one flip-flop","a 6-input LUT and 2 flip-flops","only multiplexers","a CPU"],0,"Plus carry chain and control muxes."],
+["A divide-by-3 counter in binary encoding needs…",["2 flip-flops","3 flip-flops","1 flip-flop","6 flip-flops"],0,"Three states need 2 state bits."],
+["The 7-series LUT outputs are…",["O6 and O5","Q and QN","X and Y","D and E"],0,"With A6=1 they are two 5-input functions."],
+["BQ is…",["the output of the second flip-flop","the carry out","the LUT output","the clock"],0,"B and BMUX are combinational outputs."],
+["The second storage element of a 7-series PLE can be…",["a D flip-flop or a D latch","only a flip-flop","only a latch","a RAM"],0,"The first is always a flip-flop."],
+["All storage elements in a slice share…",["clock CLK, enable CE and set/reset SR","nothing","only the LUT","the output"],0,"They are programmed together."],
+["CARRY4 is…",["a fast 4-bit carry chain","a 4-input LUT","4 flip-flops","a clock divider"],0,"Chains between slices for long adders."],
+["t_ripple for N bits is…",["N · t_FA","t_FA / N","N + t_FA","t_FA²"],0,"The carry passes through every full adder."]];
+Q.pt4=[
+["Programming an FPGA's I/O blocks sets…",["input, output or bidirectional and the voltage standard","the LUT","the clock only","the bitstream length"],0,"For example LVCMOS33."],
+["Fuse-link technology is used in…",["PAL devices","today's FPGAs","DRAM","CPLDs only"],0,"One-time programmable."],
+["An unprogrammed antifuse has…",["high resistance (open)","low resistance","negative resistance","no leads"],0,"A high voltage makes it a low-resistance link."],
+["A big advantage of antifuse is…",["hard to reverse-engineer","reprogrammable","volatile","slow"],0,"The configuration is buried deep in the chip."],
+["EPROM / EEPROM cells use…",["a floating gate transistor","a fuse","6 transistors SRAM","a capacitor only"],0,"Programmed with about 12 V."],
+["SRAM configuration cell = 0 means the pass transistor is…",["OFF (no connection)","ON","burnt","floating"],0,"1 = connection."],
+["SRAM-based FPGAs are…",["volatile","nonvolatile","one-time programmable","analog"],0,"They lose the configuration at power-off."],
+["Why does an SRAM FPGA need a boot memory?",["to reload the configuration at every power-up","to store user data","to cool the chip","to run the OS"],0,"Flash holds the bitstream."],
+["An SRAM configuration cell uses about…",["6 transistors","1 transistor","2 transistors","100 transistors"],0,"A disadvantage of SRAM."],
+["25 million cells at 5 MHz serial takes…",["5 seconds","5 ms","25 seconds","0.2 s"],0,"25 M / 5 M per second."],
+["In master mode the FPGA…",["loads itself from memory on the board","is loaded by a processor","does not load","loads from the cloud"],0,"Slave mode: an external device pushes the data."],
+["The synchronisation word in a bitstream is…",["0xAA995566","0xFFFFFFFF","0x00000000","0x12345678"],0,"0xFFFFFFFF are the dummy words."],
+["A partial bitstream is used for…",["partial reconfiguration of a region","faster clocks","testing pins only","encryption"],0,"The rest keeps running."],
+["Configuration memory is arranged in…",["frames","pages of 1 KB","tiles of LUTs","rows of fuses"],0,"The smallest addressable segments."],
+["JTAG was originally designed for…",["testing boards and ICs (boundary scan)","programming ROMs","clock distribution","video"],0,"IEEE 1149.1."],
+["TDI means…",["Test Data In","Timing Data Input","Total Data Index","Test Delay Interval"],0,"TDO = Test Data Out."],
+["Which pin gives the timing for the TAP controller?",["TCK","TMS","TDI","TDO"],0,"TMS selects the state."],
+["In a JTAG chain the bit that comes out of TDO equals the bit sent in. That means…",["the cells and interconnections are good","a broken wire","the device is empty","the clock is too slow"],0,"A difference points to a fault."],
+["Vivado's 'Program device' uses…",["the USB-JTAG port","a PS/2 cable","the audio jack","Wi-Fi"],0,"Hardware Manager, Open target, Auto Connect."]];
+Q.lab2=(Q.lab2||[]).concat([["Where in Vivado do you set the top module?",["Sources → right-click → Set as Top","Tools → Settings","Flow Navigator → IP Catalog","File → Exit"],0,"Its name turns bold."],["Which button runs the simulation in Vivado?",["Run Simulation → Run Behavioral Simulation","Generate Bitstream","Open Target","Run Synthesis"],0,"Under Simulation in the Flow Navigator."]]);
+Q.lab8=(Q.lab8||[]).concat([["Where do you create the Clocking Wizard in Vivado?",["IP Catalog","Add Sources → Create File","Tools → Timing","Hardware Manager"],0,"Search for 'Clocking Wizard'."],["Which button programs the FPGA?",["Hardware Manager → Program device","Run Synthesis","Set as Top","Zoom Fit"],0,"After Open target → Auto Connect."]]);
+Q.final=(Q.final||[]).concat([["Which technology stores the configuration of your Artix-7 FPGA?",["SRAM","antifuse","fuse-link","mask ROM"],0,"So it needs a boot memory."],["A 4-input LUT holds…",["16 bits of truth table","4 flip-flops","a clock","1 bit"],0,"2⁴ cells."],["The bitstream is…",["the file that configures the FPGA","the testbench","the XDC","the simulation waveform"],0,".bit file from Vivado."],["A PAL differs from a PLA because…",["its OR array is fixed","its AND array is fixed","it has no gates","it is volatile"],0,"Only the AND array is programmable."]]);
+})();
 </script><script>
 (function(){
 "use strict";
@@ -2766,6 +3154,194 @@ function xdcText(spec){let t="## One possible pin choice. If your lab sheet name
       t+="set_property -dict { PACKAGE_PIN "+pin.padEnd(3)+" IOSTANDARD "+std+" } [get_ports { "+port+" }];   ## "+m[4]+(PIN[m[4]].length>1?k:"")+"\n";
       if(m[4]==="CLK")t+="create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports { "+port+" }];\n";}});return t;}
 function xdcBoxes(){Object.keys(XDC).forEach(id=>$$("#"+id+" .ex").forEach((ex,i)=>{const sp=XDC[id][i];if(!sp)return;const s=document.createElement("script");s.type="text/plain";s.className="v";s.dataset.n="constraints.xdc (generated for this exercise)";s.textContent=xdcText(sp);ex.append(s);}));}
+/* ---------- widgets, set 4: PLD theory ---------- */
+const TAB=(labels,cb)=>{const r=mk('<div class="row"></div>');labels.forEach((l,i)=>{const b=BTN(l,()=>{$$("button",r).forEach((x,j)=>x.classList.toggle("gh",j!==i));cb(i);},true);r.append(b);});$$("button",r)[0].classList.remove("gh");return r;};
+const CELL=(on,txt)=>'<span style="display:inline-block;min-width:34px;text-align:center;padding:5px 7px;margin:2px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-weight:700;'+(on?"background:var(--acc);color:#fff":"")+'">'+txt+"</span>";
+
+W.pla=el=>{const b=box("Programmable PLA · 3 inputs, 4 product terms, 2 outputs · click the dots");const S=[SW("A",1,u),SW("B",0,u),SW("C",1,u)],LX=LED("X","g"),LY=LED("Y","g"),o=OUT();
+  const lit=["A","A'","B","B'","C","C'"];let AND=[[0,1,0,1,0,0].map((_,i)=>0),[],[],[]].map(()=>Array(6).fill(0));
+  const OR=[[0,0,0,0],[0,0,0,0]];
+  const pre=(a,x,y)=>{AND=a;OR[0]=x;OR[1]=y;draw();};
+  // preset X = A'B'C + ABC' , Y = AB'
+  AND[0][1]=AND[0][3]=AND[0][4]=1;AND[1][0]=AND[1][2]=AND[1][5]=1;AND[2][0]=AND[2][3]=1;OR[0]=[1,1,0,0];OR[1]=[0,0,1,0];
+  const t1=mk('<div></div>'),t2=mk('<div></div>');b.append(ROW(...S,LX,LY),mk('<div class="wt" style="margin-top:10px">AND array (product terms)</div>'),t1,mk('<div class="wt" style="margin-top:10px">OR array (outputs)</div>'),t2,o,ROW(BTN("Clear all",()=>{AND=[0,1,2,3].map(()=>Array(6).fill(0));OR[0]=[0,0,0,0];OR[1]=[0,0,0,0];draw();},true),BTN("Load slide example",()=>{pre([[0,1,0,1,1,0],[1,0,1,0,0,1],[1,0,0,1,0,0],Array(6).fill(0)],[1,1,0,0],[0,0,1,0]);},true)));el.replaceWith(b);
+  const v=()=>S.map(s=>s.v),term=(r,x)=>{if(!AND[r].some(Boolean))return 0;const l=[x[0],1-x[0],x[1],1-x[1],x[2],1-x[2]];return AND[r].every((c,i)=>!c||l[i])?1:0;};
+  const ts=r=>AND[r].some(Boolean)?AND[r].map((c,i)=>c?lit[i].replace("'","'"):"").filter(Boolean).join(""):"—";
+  function draw(){t1.innerHTML='<table class="tt"><tr><th>term</th>'+lit.map(l=>"<th>"+l+"</th>").join("")+"<th>=</th></tr>"+AND.map((r,i)=>"<tr><td>P"+(i+1)+"</td>"+r.map((c,j)=>'<td data-a="'+i+","+j+'">'+CELL(c,c?"●":"·")+"</td>").join("")+"<td id='pv"+i+"'></td></tr>").join("")+"</table>";
+    t2.innerHTML='<table class="tt"><tr><th>out</th>'+[1,2,3,4].map(i=>"<th>P"+i+"</th>").join("")+"</tr>"+["X","Y"].map((n,i)=>"<tr><td>"+n+"</td>"+OR[i].map((c,j)=>'<td data-o="'+i+","+j+'">'+CELL(c,c?"●":"·")+"</td>").join("")+"</tr>").join("")+"</table>";
+    $$("[data-a]",t1).forEach(td=>td.onclick=()=>{const[i,j]=td.dataset.a.split(",").map(Number);AND[i][j]^=1;draw();});$$("[data-o]",t2).forEach(td=>td.onclick=()=>{const[i,j]=td.dataset.o.split(",").map(Number);OR[i][j]^=1;draw();});u();}
+  function u(){const x=v();AND.forEach((_,i)=>{const e=$("#pv"+i,t1);if(e)e.textContent=term(i,x);});const out=OR.map(r=>r.some((c,j)=>c&&term(j,x))?1:0);LX.set(out[0]);LY.set(out[1]);
+    o.textContent=["X","Y"].map((n,i)=>n+" = "+(OR[i].map((c,j)=>c?ts(j):null).filter(Boolean).join(" + ")||"0")+"   → "+out[i]).join("\n")+"\n(a ' means NOT)";}
+  draw();};
+
+W.lut=el=>{const b=box("4-input LUT · 16 memory cells + a multiplexer");const S=[SW("A",1,u),SW("B",1,u),SW("C",0,u),SW("D",0,u)],F=LED("F","g"),o=OUT(),g=mk('<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:8px 0"></div>');
+  let m=Array(16).fill(0);const set=fn=>{m=m.map((_,i)=>fn((i>>3)&1,(i>>2)&1,(i>>1)&1,i&1)?1:0);draw();};
+  b.append(ROW(...S,F),g,o,ROW(BTN("F = AB + CD'",()=>set((a,b,c,d)=>a&b|c&(1-d)),true),BTN("XOR of all",()=>set((a,b,c,d)=>a^b^c^d),true),BTN("AND of all",()=>set((a,b,c,d)=>a&b&c&d),true),BTN("Clear",()=>set(()=>0),true)));el.replaceWith(b);set((a,b,c,d)=>a&b|c&(1-d));
+  function draw(){g.innerHTML="";m.forEach((v,i)=>{const c=mk('<div style="text-align:center;padding:6px 2px;border-radius:8px;border:1px solid var(--line);cursor:pointer;font-family:JetBrains Mono,monospace;font-size:12px"><div style="opacity:.6">'+bits(i,4)+'</div><div style="font-size:18px;font-weight:700">'+v+"</div></div>");c.onclick=()=>{m[i]^=1;draw();};c.dataset.i=i;g.append(c);});u();}
+  function u(){const a=S.reduce((x,s)=>x*2+s.v,0);$$("[data-i]",g).forEach(c=>{const sel=+c.dataset.i===a;c.style.background=sel?"var(--acc)":"";c.style.color=sel?"#fff":"";});F.set(m[a]);
+    o.textContent="inputs ABCD = "+bits(a,4)+" = address "+a+"\nthe multiplexer selects cell "+a+" → F = "+m[a]+"\nminterms stored as 1: "+(m.map((v,i)=>v?i:null).filter(x=>x!==null).join(", ")||"none");}
+  };
+
+W.shannon=el=>{const b=box("Shannon decomposition · F(a,b,c) = a·F(1,b,c) + a'·F(0,b,c)");const FN=[["a·b + c",(a,b,c)=>a&b|c],["a ⊕ b ⊕ c",(a,b,c)=>a^b^c],["majority(a,b,c)",(a,b,c)=>(a&b)|(a&c)|(b&c)]];let f=0;
+  const S=[SW("a",1,u),SW("b",0,u),SW("c",1,u)],L=LED("F","g"),o=OUT();b.append(TAB(FN.map(x=>x[0]),i=>{f=i;u();}),ROW(...S,L),o);el.replaceWith(b);
+  function u(){const[a,bb,c]=S.map(s=>s.v),F=FN[f][1],t=x=>[0,1].map(i=>[0,1].map(j=>F(x,i,j)).join("")).join(" ");const r=a?F(1,bb,c):F(0,bb,c);L.set(r);
+    o.textContent="LUT 1 (a=1 cofactor): F(1,b,c) for bc=00,01,10,11 → "+[0,1].flatMap(i=>[0,1].map(j=>F(1,i,j))).join("")+"\nLUT 2 (a=0 cofactor): F(0,b,c) for bc=00,01,10,11 → "+[0,1].flatMap(i=>[0,1].map(j=>F(0,i,j))).join("")+"\nthis input set: bc="+bb+c+" → LUT1 gives "+F(1,bb,c)+", LUT2 gives "+F(0,bb,c)+"\n2:1 mux with select a="+a+" → F = "+r+"\nTwo 2-input LUTs + one mux replace one 3-input function: that is how a big function is cut to fit small LUTs.";}
+  u();};
+
+W.ripple=el=>{const b=box("Ripple-carry adder delay vs CARRY4");const N=RNG("bits N",4,32,16,()=>{build();u();}),T=RNG("t_FA (tenths of ns)",1,10,5,u),o=OUT(),r1=mk('<div style="display:flex;flex-wrap:wrap;gap:3px;margin:8px 0"></div>'),r2=mk('<div style="display:flex;flex-wrap:wrap;gap:3px;margin:8px 0"></div>');let tm=[];
+  b.append(N,T,mk('<div class="wt">plain full adders, carry ripples one bit at a time</div>'),r1,mk('<div class="wt">CARRY4 chain, fast dedicated carry path</div>'),r2,ROW(BTN("▶ Send a carry",run)),o);el.replaceWith(b);
+  const bx=()=>mk('<span style="width:22px;height:22px;border-radius:5px;border:1px solid var(--line);display:inline-block"></span>');
+  function build(){r1.innerHTML=r2.innerHTML="";for(let i=0;i<N.v;i++){r1.append(bx());r2.append(bx());}}
+  function u(){const t=N.v*T.v/10,c4=0.5+Math.ceil(N.v/4)*0.1;o.textContent="ripple:  t = N × t_FA = "+N.v+" × "+(T.v/10)+" ns = "+t.toFixed(1)+" ns\nCARRY4: about "+c4.toFixed(1)+" ns for "+N.v+" bits ("+Math.ceil(N.v/4)+" CARRY4 elements, fast)\nlonger adders make the plain ripple slower in a straight line.";}
+  function run(){tm.forEach(clearTimeout);tm=[];const A=$$("span",r1),B=$$("span",r2);[...A,...B].forEach(s=>s.style.background="");A.forEach((s,i)=>tm.push(setTimeout(()=>s.style.background="var(--hot)",i*T.v*25)));B.forEach((s,i)=>tm.push(setTimeout(()=>s.style.background="var(--on)",Math.floor(i/4)*40)));}
+  build();u();};
+
+W.sram=el=>{const b=box("SRAM cell controls a pass transistor");const M=SW("SRAM cell M",0,u),o=OUT(),s=svg("0 0 360 90",'<text x="6" y="45" font-size="14" fill="currentColor">A</text><path id="wl" class="wire" d="M22 42 H130"/><rect x="130" y="25" width="100" height="34" rx="8" class="gate"/><text x="150" y="47" font-size="13" fill="currentColor">pass transistor</text><path id="wr" class="wire" d="M230 42 H330"/><text x="338" y="45" font-size="14" fill="currentColor">B</text>');s.style.maxWidth="400px";
+  const C=RNG("cells (millions)",1,100,25,v),R=RNG("config clock (MHz)",1,50,5,v),o2=OUT();b.append(ROW(M),s,o,mk('<div class="wt" style="margin-top:14px">How long to load the configuration?</div>'),C,R,o2);el.replaceWith(b);
+  function u(){const on=M.v;$("#wl",s).classList.toggle("on",!!on);$("#wr",s).classList.toggle("on",!!on);o.textContent="M = "+on+" → transistor "+(on?"ON: A and B are connected":"OFF: A and B are not connected")+"\nChanging M re-wires the chip. That is reconfiguration.";}
+  function v(){o2.textContent=C.v+" million cells ÷ "+R.v+" MHz (serial, 1 bit per clock) = "+(C.v/R.v).toFixed(1)+" seconds";}
+  u();v();};
+
+const BSP=[["Header (comment data)","ASCII text: creation date and time, part model number. Not used for configuring."],["Dummy words 0xFFFFFFFF","Fill words that align the parser on 32-bit word boundaries."],["Bus width auto detect words","Tell the chip how wide the configuration bus is (1, 2, 4 or 8 bits)."],["Sync word 0xAA995566","Marks that the real configuration data starts now, and aligns the data with the internal configuration logic."],["Series of packets","Each packet has a header that says which configuration register to write."],["Configuration words","The payload: the actual LUT contents, routing and I/O bits written into configuration memory."]];
+W.bitstream=el=>{const b=box("Full bitstream layout · click a part");const row=mk('<div style="display:flex;flex-wrap:wrap;gap:6px"></div>'),o=OUT();BSP.forEach((p,i)=>{const x=BTN(p[0],()=>{$$("button",row).forEach(y=>y.classList.add("gh"));x.classList.remove("gh");o.textContent=p[1];},i);row.append(x);});b.append(row,o);el.replaceWith(b);$$("button",row)[0].click();};
+
+W.jtag=el=>{const b=box("Boundary-scan chain · 3 devices × 4 cells");const N=12,cells=Array(N).fill(0);let stuck=0,n=0;const TDI=SW("TDI",1,()=>{}),BR=SW("broken wire between device 2 and 3",0,()=>{stuck=BR.v;}),TDO=LED("TDO","g"),row=mk('<div class="row"></div>'),o=OUT();
+  const L=cells.map((_,i)=>{const l=LED((i<4?"d1":i<8?"d2":"d3")+"."+(i%4),"g");row.append(l);return l;});
+  function clk(inbit){TDO.set(cells[N-1]);const last=cells[N-1];for(let i=N-1;i>0;i--)cells[i]=(i===8&&stuck)?0:cells[i-1];cells[0]=inbit;n++;draw();return last;}
+  function draw(){cells.forEach((v,i)=>L[i].set(v));o.textContent="TCK pulses so far: "+n+"   TDO = "+cells[N-1];}
+  b.append(ROW(TDI,BR),row,ROW(TDO),ROW(BTN("TCK ↑ (shift 1)",()=>clk(TDI.v)),BTN("Reset",()=>{cells.fill(0);n=0;draw();},true),BTN("Run the full test",()=>{cells.fill(0);n=0;const pat=[1,0,1,1,0,0,1,0,1,1,0,1],outv=[];pat.forEach(x=>clk(x));for(let i=0;i<N;i++)outv.push(clk(0));const ok=outv.every((x,i)=>x===pat[i]);draw();o.textContent="sent:     "+pat.join("")+"\nreceived: "+outv.join("")+"\n"+(ok?"✓ same bits came out of TDO → cells and interconnections are good":"✗ different bits came out → a connection is broken");o.style.color=ok?"var(--acc)":"var(--hot)";},true)),o);el.replaceWith(b);draw();};
+
+W.fpgagrid=el=>{const b=box("FPGA fabric · click CLBs to use them");const R=5,C=7,used=new Set(),g=mk('<div style="display:grid;grid-template-columns:repeat('+C+',1fr);gap:8px;padding:10px;border-radius:12px;background:color-mix(in srgb,#fbbf24 18%,transparent)"></div>'),o=OUT();
+  for(let i=0;i<R*C;i++){const c=mk('<div style="aspect-ratio:1;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:11px;cursor:pointer;background:color-mix(in srgb,var(--acc2) 20%,transparent)">CLB</div>');c.onclick=()=>{used.has(i)?used.delete(i):used.add(i);c.style.background=used.has(i)?"var(--acc)":"";c.style.color=used.has(i)?"#fff":"";u();};g.append(c);}
+  b.append(g,o);el.replaceWith(b);const tot=R*C;function u(){o.textContent="used "+used.size+" of "+tot+" blocks = "+Math.round(100*used.size/tot)+"% (each CLB = 2 slices = 8 LUT6 + 16 flip-flops)\nthe yellow area is the programmable interconnect between them";}u();};
+
+W.parallel=el=>{const b=box("Processor (one at a time) vs FPGA (all at once)");const N=RNG("number of additions",4,32,16,build),o=OUT(),r1=mk('<div style="display:flex;flex-wrap:wrap;gap:3px;margin:6px 0"></div>'),r2=mk('<div style="display:flex;flex-wrap:wrap;gap:3px;margin:6px 0"></div>');let tm=[];
+  b.append(N,mk('<div class="wt">microprocessor</div>'),r1,mk('<div class="wt">FPGA</div>'),r2,ROW(BTN("▶ Run",run)),o);el.replaceWith(b);
+  const bx=()=>mk('<span style="width:22px;height:22px;border-radius:5px;border:1px solid var(--line);display:inline-block"></span>');
+  function build(){r1.innerHTML=r2.innerHTML="";for(let i=0;i<N.v;i++){r1.append(bx());r2.append(bx());}o.textContent="processor: "+N.v+" steps    FPGA: 1 step (one adder for every operation)";}
+  function run(){tm.forEach(clearTimeout);tm=[];const A=$$("span",r1),B=$$("span",r2);[...A,...B].forEach(s=>s.style.background="");A.forEach((s,i)=>tm.push(setTimeout(()=>s.style.background="var(--hot)",i*120)));tm.push(setTimeout(()=>B.forEach(s=>s.style.background="var(--on)"),120));}
+  build();};
+
+W.hier=el=>{const b=box("Zoom in: CLB → slice → PLE (7-series)");const o=mk('<div></div>');const blk=(t,n,inner)=>'<div style="border:1px solid var(--line);border-radius:10px;padding:8px;margin:4px;display:inline-block;vertical-align:top"><b style="font-size:12px">'+t+"</b><br>"+inner+"</div>";
+  const ple=blk("PLE","","6-input LUT<br>2 flip-flops"),sl=blk("slice","",ple.repeat(4)),clb=blk("CLB","",sl.repeat(2));const info=["1 CLB = 2 slices = 8 PLEs = 8 LUT6 + 16 flip-flops","1 slice = 4 PLEs = 4 LUT6 + 8 flip-flops (+ carry chain, shared clock, enable and set/reset)","1 PLE = one 6-input LUT (or two 5-input functions) + 2 flip-flops, outputs B, BMUX, BQ"];
+  const t=mk('<div style="'+MONO+';margin-top:8px"></div>');b.append(TAB(["CLB","Slice","PLE"],i=>{o.innerHTML=[clb,sl,ple][i];t.textContent=info[i]+(i===0?"\nyour chip XC7A100T: 15,850 slices → 63,400 LUTs and 126,800 flip-flops":"");}),o,t);el.replaceWith(b);o.innerHTML=clb;t.textContent=info[0]+"\nyour chip XC7A100T: 15,850 slices → 63,400 LUTs and 126,800 flip-flops";};
+
+GEN.pld=[()=>{const n=3+R(10),m=1+R(8);return ["A ROM realises "+m+" functions of "+n+" variables. How many words (rows) does it need?",2**n,"2^"+n+" = "+2**n+" words, each "+m+" bits."];},
+ ()=>{const n=3+R(6),m=1+R(8);return ["ROM with "+n+" address bits and "+m+" data bits. How many bits does it store in total?",2**n*m,"2^"+n+" × "+m+" = "+2**n*m+"."];},
+ ()=>{const n=2+R(14);return ["An n-input PLA has AND gates with how many inputs each (inputs and their complements) for n = "+n+"?",2*n,"Each variable and its complement: 2n = "+2*n+"."];},
+ ()=>{const r=[16,32,64][R(3)],c=[16,32,64][R(3)];return ["A programmable AND array has "+r+" rows and "+c+" columns. How many fuses?",r*c,r+" × "+c+" = "+r*c+" (PAL16L8: 64 × 32 = 2048)."];},
+ ()=>{const n=2+R(5);return ["An FPGA LUT has "+n+" inputs. How many memory cells does it contain?",2**n,"2^"+n+" = "+2**n+"."];},
+ ()=>{const p=[[25,5],[50,5],[100,10],[100,25],[50,10],[10,5],[100,5]][R(7)];return ["SRAM FPGA with "+p[0]+" million configuration cells loaded serially at "+p[1]+" MHz. How many seconds?",p[0]/p[1],p[0]+" ÷ "+p[1]+" = "+p[0]/p[1]+" s."];},
+ ()=>{const n=4+R(28),t=1+R(5);return ["Ripple-carry adder, "+n+" bits, each full adder "+t+" ns. Total delay in ns?",n*t,"t = N × t_FA = "+n+" × "+t+" = "+n*t+"."];},
+ ()=>{const k=1+R(20);return ["7-series: how many slices are in "+k+" CLBs?",2*k,"2 slices per CLB."];},
+ ()=>{const k=1+R(20);return ["7-series: how many 6-input LUTs are in "+k+" slices?",4*k,"4 PLEs per slice, one LUT each."];},
+ ()=>{const k=1+R(20);return ["7-series: how many flip-flops are in "+k+" slices?",8*k,"4 PLEs × 2 flip-flops = 8 per slice."];},
+ ()=>{const k=1+R(12);return ["A CPLD has "+k+" LABs with 16 macrocells each. How many macrocells?",16*k,k+" × 16 = "+16*k+"."];},
+ ()=>{const d=2+R(5),c=2+R(6);return ["JTAG chain of "+d+" devices with "+c+" boundary cells each. How many TCK pulses to shift one bit from TDI to TDO?",d*c,d+" × "+c+" = "+d*c+" cells to pass."];},
+ ()=>["How many flip-flops does one PLE of the 7-series have?",2,"One 6-input LUT and 2 flip-flops."]];
+/* ---------- line-by-line explanations + full Vivado 2022 steps ---------- */
+const LBL={
+"lab2_1.v":[[1,1,"Starts the module. <b>x, y, s</b> are inputs (switches). <b>m</b> is the output (LED). These names must be the same in the XDC file."],[2,2,"Three internal wires. Every gate output that another gate reads needs its own wire."],[3,3,"A NOT gate called <code>g0</code>. In a gate primitive the <b>first</b> name is the output: <code>ns = ~s</code>."],[4,4,"AND gate: <code>a1 = x &amp; ns</code>. It lets x pass only when s = 0."],[5,5,"AND gate: <code>a2 = s &amp; y</code>. It lets y pass only when s = 1."],[6,6,"OR gate joins both. Only one AND can be active, so <code>m</code> is x or y."],[7,7,"Ends the module."]],
+"lab2_2.v":[[1,1,"Same module but <code>[1:0]</code> makes x, y and m two bits wide. s is still one bit."],[2,3,"<code>ns</code> is shared by both bits. <code>a1</code> and <code>a2</code> are 2-bit wires: one wire per bit."],[4,4,"One NOT gate for the shared select."],[5,5,"Two AND gates in one statement (a comma separates them). They handle <b>bit 0</b>."],[6,6,"Two more AND gates for <b>bit 1</b>."],[7,7,"Two OR gates make m[0] and m[1]."],[8,8,"Ends the module."]],
+"lab2_3.v":[[1,1,"8 switches in, 8 LEDs out."],[2,2,"<code>assign</code> connects the whole vector at once: x_in[0]→y_out[0], x_in[1]→y_out[1] … No gates needed."],[3,3,"Ends the module."]],
+"lab2_4.v":[[1,1,"Sets the time unit for <code>#</code> delays: 1 ns, and 1 ps precision. Needed so <code>#3</code> means 3 ns."],[2,2,"2-bit mux ports."],[3,3,"Dataflow equation of the mux for bit 0. <code>#3</code> = the output changes 3 ns after any input changes."],[4,4,"Same for bit 1."],[5,5,"Ends the module."]],
+"lab2_4_tb.v":[[1,1,"Time unit for the testbench."],[2,2,"A testbench has no ports. It is the top of the simulation."],[3,3,"<code>reg</code> for what you drive (inputs), <code>wire</code> for what you read (output)."],[4,4,"Puts your design inside the testbench. <code>uut</code> = unit under test. Named ports connect each signal."],[5,5,"<code>initial</code> runs once at time 0."],[6,6,"Time 0: x=01, y=10, s=0."],[7,7,"Wait 20 ns, then s=1 (t=20)."],[8,8,"Wait 20 more, x changes (t=40)."],[9,9,"t=60: s=0."],[10,10,"t=80: y changes."],[11,11,"t=100: stop the simulation."],[12,13,"End of the initial block and module."]],
+"lab2_5.v":[[1,1,"<code>output reg</code>: m is assigned inside <code>always</code>, so it must be a reg."],[2,2,"Run the block whenever x, y or s changes. <code>@(*)</code> means the same."],[3,3,"Start of the block."],[4,4,"If s is 0 copy x."],[5,5,"Otherwise copy y. Both branches set m, so no latch is created."],[6,7,"End of the block and the module."]],
+"mux2.v":[[1,1,"A small 1-bit mux. Any style is fine; we reuse it as a building block."],[2,2,"The mux equation."],[3,3,"End."]],
+"lab2_6.v":[[1,1,"Top module: three data inputs, two selects."],[2,2,"Wire <code>t</code> carries the output of the first mux into the second one."],[3,3,"First mux picks u or v with s0. Named ports: <code>.x(u)</code> means port x of mux2 is connected to signal u."],[4,4,"Second mux picks t (u/v result) or w with s1. s1=1 always gives w."],[5,5,"End."]],
+"decoder_3to8_dataflow.v":[[1,1,"3 input bits, 8 output lines."],[2,9,"One line per input row. Output y[n] is 1 only when x equals n in binary. Write <code>~x</code> where the row has a 0, plain <code>x</code> where it has a 1, and AND them."],[10,10,"A shorter way: shift a single 1 left by x places."],[11,11,"End."]],
+"decoder_74138_dataflow.v":[[1,1,"x is the address, g1/g2a/g2b are the three enable pins like the real chip. y is active-low."],[2,2,"<code>t</code> holds the normal (active-high) decoder result."],[3,3,"The chip works only when g1=1 and g2a=0 and g2b=0. <code>~g2a</code> turns the low-active pins into a plain 1."],[4,4,"Reuse exercise 1. This is a <b>module instance</b>. Add that file to the project too."],[5,5,"If enabled: invert t (the chosen line becomes 0, all others 1). If disabled: all outputs 1."],[6,6,"End."]],
+"bcdto7segment_dataflow.v":[[1,1,"x = BCD digit. an = which digit is on. seg = 7 segments a–g."],[2,2,"<code>inv</code> = 1 when x is 10…15 (x3 and (x2 or x1)). These are not BCD digits, so the display goes blank."],[3,4,"Segment a is OFF (=1) for digits 1 and 4. So seg[0] = invalid OR digit1 OR digit4. Each AND term describes one digit."],[5,6,"Segment b is OFF for 5 and 6. <code>x[1]^x[0]</code> matches 01 and 10 together."],[7,8,"Segment c is OFF only for 2."],[9,10,"Segment d is OFF for 1, 9, 4 and 7."],[11,12,"Segment e is OFF for every odd digit (<code>x[0]</code>) and for 4."],[13,14,"Segment f is OFF for 1, 2, 3 and 7."],[15,16,"Segment g is OFF for 0, 1 and 7."],[17,17,"Anodes are active-low: 11111110 switches on only the rightmost digit."],[18,18,"End."]],
+"lab3_4.v":[[1,1,"v = 8 request lines (0 = active). e_in = enable (active-low). y = winner number (inverted). gs = group select, e_out = enable out, to chain chips."],[2,2,"Combinational block: the output is recomputed whenever anything changes."],[3,4,"Chip disabled: everything inactive (all 1)."],[5,6,"Enabled but nobody is asking (<code>v</code> all 1s): y=111, gs=1, e_out=0 tells the next chip it may work."],[7,8,"Somebody is asking: gs=0 (active), e_out=1."],[9,15,"The if / else-if chain is the priority. The first line that is true wins, so v[7] beats v[6] and so on. y is the inverted number of the winner."],[16,16,"Only v[0] can be left, so y=111."],[17,19,"Close the branches, the block and the module."]],
+"lab4_1.v":[[1,1,"No inputs. The 7-segment pins are outputs."],[2,2,"A constant 4-bit number: 0101 = 5."],[3,3,"Reuse the lab 3 decoder. Add <code>bcdto7segment_dataflow.v</code> to this project too."],[4,4,"End."]],
+"lab4_2.v":[[1,1,"4-bit BCD in, 5-bit code out."],[2,11,"A chain of <code>? :</code>: if x equals 0 take that code, else test the next one. Each code word has exactly two 1s."],[12,12,"Last else: not a BCD digit → all LEDs off."],[13,13,"End."]],
+"comparator.v":[[1,1,"v = the 4-bit number."],[2,2,"v is 10…15 when bit3 is 1 and (bit2 or bit1) is 1. This equals <code>v &gt; 9</code>. z is also the tens digit."],[3,3,"End."]],
+"circuit_a.v":[[1,1,"Takes the low 3 bits of v. Used only when v is 10…15, to compute v − 10."],[2,2,"Result bit 0 equals v[0] (10→0, 11→1, 12→0 …)."],[3,3,"Result bit 1 is <code>v[2] &amp; ~v[1]</code>: it is 1 for 12 (→010) and 13 (→011)."],[4,4,"Result bit 2 is 1 for 14 and 15: <code>v[2] &amp; v[1]</code>."],[5,5,"End."]],
+"lab4_3_partA.v":[[1,1,"z = tens digit, m = units digit."],[2,2,"Wire for circuit A's result."],[3,3,"Comparator sets z."],[4,4,"Circuit A computes v − 10."],[5,7,"Three muxes, one per bit. s = z: z=0 gives v itself, z=1 gives circuit A."],[8,8,"Top bit: when z=1 the units digit is below 8, so bit 3 is forced to 0."],[9,9,"End."]],
+"lab4_3.v":[[1,1,"Top module: switches in, one LED (tens digit), 7-segment out."],[2,2,"Wire carrying the units digit."],[3,3,"Part A makes z and the units digit."],[4,4,"The lab 3 decoder shows the units digit."],[5,5,"End."]],
+"rom_basics.v":[[1,1,"Declares a ROM: 16 words, each 4 bits. Format: <code>reg [width-1:0] name [0:depth-1]</code>."],[2,2,"Read: the address picks one word."],[3,3,"<code>initial</code> + <code>$readmemb</code> fills the ROM once from a text file of binary numbers."],[4,4,"<code>$readmemh</code> is the same with hex digits."]],
+"comp.txt":[[1,4,"a = 0: b = 0 → equal (001). b = 1, 2, 3 → b is greater → <code>gt</code> (010)."],[5,8,"a = 1: b = 0 → <code>lt</code> (100). b = 1 → equal. b = 2, 3 → 010."],[9,12,"a = 2: b = 0, 1 → 100. b = 2 → 001. b = 3 → 010."],[13,16,"a = 3: b = 0, 1, 2 → 100. b = 3 → 001."]],
+"mult.txt":[[1,4,"a = 0: product is always 0000."],[5,8,"a = 1: product = b (0, 1, 2, 3)."],[9,12,"a = 2: product = 2b (0, 2, 4, 6)."],[13,16,"a = 3: product = 3b (0, 3, 6, 9)."]],
+"lab5_1.v":[[1,1,"a and b are 2-bit inputs. Three one-bit outputs."],[2,2,"ROM with 16 words of 3 bits. Index range 0…15 because the address is 4 bits (a and b)."],[3,3,"Loads <code>comp.txt</code> into the ROM. The file must be added to the project."],[4,4,"<code>{a, b}</code> glues a and b into a 4-bit address (a = high bits). The 3-bit word is split into lt, gt, eq by <code>{lt, gt, eq}</code>."],[5,5,"End."]],
+"lab5_2.v":[[1,1,"Two 2-bit numbers in, 4-bit product out."],[2,2,"16 words of 4 bits."],[3,3,"Load the table from <code>mult.txt</code>."],[4,4,"Look the product up at address {a,b}. Largest product 3×3=9 = 1001 fits in 4 bits."],[5,5,"End."]],
+"lab5_3.v":[[1,1,"2 address bits, 8 data bits."],[2,2,"ROM with 4 words of 8 bits."],[3,3,"The whole content as one 32-bit constant: four bytes A5, 3C, F0, 0F."],[4,4,"Loop counter. <code>integer</code> is only for loops and testbenches."],[5,5,"<code>initial</code> runs once at start-up."],[6,6,"Repeat for i = 0, 1, 2, 3."],[7,7,"<code>[31 - i*8 -: 8]</code> means 8 bits counting downward from that position: i=0 → bits 31…24 (A5), i=1 → bits 23…16 (3C) …"],[8,8,"Read the word chosen by address."],[9,9,"End."]],
+"add_two_values.v":[[1,1,"Inputs ain, bin (4 bits). Outputs are <code>reg</code> because a task assigns them inside <code>always</code>."],[2,2,"Defines a task named <code>add_two_values_task</code>."],[3,3,"Task inputs a and b."],[4,5,"Task outputs: 4-bit sum s and the carry c."],[6,6,"Start of the task body."],[7,7,"<code>{c, s} = a + b</code>: the 5-bit result is split into carry and 4-bit sum."],[8,9,"End of body and task."],[11,11,"Run again whenever ain or bin changes."],[12,12,"Call the task. Arguments go in the same order as declared: inputs first, then outputs."],[13,13,"End."]],
+"add_two_values_task_tb.v":[[1,2,"Time unit and testbench module (no ports)."],[3,5,"reg for the inputs we drive, wire for the outputs."],[6,6,"Instance of the design under test."],[7,8,"Start: both inputs 0."],[9,9,"After 10 ns: 3 + 4 = 7, no carry."],[10,10,"9 + 8 = 17 → sum 1, carry 1."],[11,11,"15 + 15 = 30 → sum 14, carry 1."],[12,12,"Stop the simulation."],[13,13,"End of the initial block."],[14,14,"<code>$monitor</code> prints a line every time a listed value changes. <code>%t</code> time, <code>%d</code> decimal, <code>%b</code> binary."],[15,15,"End."]],
+"calc_even_parity.v":[[1,1,"8-bit input, 1-bit parity output (reg)."],[2,2,"Task definition."],[3,4,"Task input a and output p."],[5,5,"Loop counter."],[6,6,"Start of the body."],[7,7,"Start with p = 0."],[8,8,"Look at every bit, i = 0 … 7."],[9,9,"XOR flips p for every 1 in a. The final p is 1 when the number of ones is odd."],[10,11,"End of loop body and task."],[13,13,"Recalculate when ain changes."],[14,14,"Call the task."],[15,15,"End."]],
+"calc_even_parity_task_tb.v":[[1,2,"Time unit, testbench module."],[3,5,"ain driven by the testbench; parity read; uut = the design."],[6,7,"Start with 0 ones → parity 0."],[8,8,"One 1 → parity 1."],[9,9,"Four 1s → parity 0."],[10,10,"Three 1s → parity 1."],[11,13,"Stop and end."]],
+"add_two_values_function.v":[[1,1,"Output <code>sum</code> is 5 bits to hold the carry."],[2,2,"A parameter: a constant that can be changed. MAXBITS = 4."],[3,3,"A function named SUM that returns 5 bits (<code>[MAXBITS:0]</code>)."],[4,4,"Function inputs. A function has at least one input and no outputs."],[5,5,"The function name is the return value: assign to it."],[6,6,"End of function."],[8,8,"Recalculate when an input changes."],[9,9,"Call the function inside an expression: <code>sum = SUM(ain, bin)</code>."],[10,10,"End."]],
+"calc_ones.v":[[1,1,"8-bit input; 4-bit output because the count can reach 8 (needs 4 bits)."],[2,2,"A function returning 4 bits."],[3,3,"Input a."],[4,4,"Loop counter."],[5,5,"Start of body."],[6,6,"The function name starts at 0 (the counter)."],[7,7,"Go through all 8 bits."],[8,8,"Add bit i (0 or 1) to the count."],[9,10,"End of loop and function."],[12,12,"Recalculate when ain changes."],[13,13,"Store the function result in the output."],[14,14,"End."]],
+"lab6_5_tb.v":[[1,2,"Time unit and testbench module."],[3,3,"Three signals that the testbench drives."],[4,4,"Connect your own circuit here if you have one."],[5,5,"Start of the stimulus."],[6,6,"t=0: A=0, G1=0, G2=1."],[7,7,"Wait 40 → t=40: A=1."],[8,8,"Wait 20 → t=60: G1=1."],[9,9,"t=80: G2=0."],[10,10,"t=100: A=0."],[11,11,"t=120: G1=0."],[12,12,"t=140: G2=1."],[13,13,"Wait 10 → t=150: finish."],[14,15,"End."]],
+"lab7_1_tb.v":[[1,2,"Time unit and module."],[3,3,"8-bit register we drive."],[4,4,"Start of the stimulus."],[5,5,"t=0: <code>'h20</code> (hex 20, size not needed)."],[6,6,"<code>#5</code> first, then assign → t=5."],[7,7,"t=10."],[8,8,"t=15."],[9,9,"t=20: finish."],[10,11,"End."]],
+"lab7_2_tb.v":[[1,2,"Time unit and module."],[3,3,"STREAM starts as x (unknown) because it has no value yet."],[4,4,"Start of the stimulus."],[5,5,"<code>STREAM = #10 0</code>: read 0 now, wait 10, assign → t=10. Blocking, so the next line starts at t=10."],[6,6,"+2 → t=12."],[7,7,"+5 → t=17."],[8,8,"+3 → t=20."],[9,9,"+4 → t=24."],[10,10,"+2 → t=26."],[11,11,"+5 → t=31."],[12,12,"Finish at t=36."],[13,13,"End of the initial block."],[14,15,"Comments: the same waveform with non-blocking assignments uses absolute times."],[16,16,"End."]],
+"lab7_3.v":[[1,1,"sw = BCD digit, en = enable. led = Gray code, err = error flag."],[2,2,"Combinational block."],[3,3,"Defaults first: error state. This guarantees every path assigns both outputs, so no latch."],[4,4,"If enabled …"],[5,5,"… clear the error flag."],[6,6,"Choose by the value of sw."],[7,16,"One line per BCD digit with its Gray code from the course table."],[17,17,"Digits 10…15 are not BCD: back to the error values."],[18,18,"End of case."],[19,21,"End of if, block and module."]],
+"clk_wiz instance":[[1,1,"Instance of the IP Vivado generated. <code>clk_in1</code> = 100 MHz in, <code>clk_out1</code> = 5 MHz out, <code>reset</code> = reset input, <code>locked</code> = 1 when the new clock is stable."]],
+"lab8_1.v":[[1,1,"clk = 100 MHz board clock, rst = reset, q = slow output, dcm = locked LED."],[2,2,"Wire for the 5 MHz clock."],[3,3,"The Clocking Wizard turns 100 MHz into 5 MHz."],[5,5,"23-bit counter. 2²³ = 8,388,608 is bigger than 5,000,000."],[6,6,"Everything runs on the 5 MHz clock edge."],[7,8,"Reset: counter and q go to 0."],[9,11,"When the counter reaches 4,999,999 (that is 5,000,000 ticks = 1 second) restart it and flip q."],[12,13,"Otherwise just count up."],[14,15,"End of block and module."]],
+"clk_divider.v":[[1,1,"Outputs a slow ~305 Hz clock for the display."],[2,2,"Wire for the 5 MHz clock."],[3,3,"Clocking Wizard."],[4,4,"14-bit free-running counter, starts at 0."],[5,5,"Add 1 at every 5 MHz tick. It wraps by itself."],[6,6,"Bit 13 toggles every 2¹³ ticks, so its frequency is 5 MHz / 2¹⁴ ≈ 305 Hz."],[7,7,"End."]],
+"bcd_to_7seg_dec.v":[[1,1,"BCD in, 7 segment bits out (reg because of <code>always</code>)."],[2,2,"Combinational block."],[3,3,"Pick the pattern by the digit."],[4,8,"One pattern per digit. 0 = segment ON. Two cases share a line only for space."],[9,9,"Anything else: all segments off."],[10,11,"End."]],
+"lab8_2.v":[[1,1,"v = binary number 0…15, seg = segments, AN = which digit is on."],[2,3,"Wires for units digit (lsb), tens digit (msb) and the slow clock."],[4,4,"<code>digit</code> says which digit is on now. 0 = units, 1 = tens."],[5,5,"x = the digit sent to the decoder now."],[7,7,"Clock divider creates the 305 Hz clock."],[8,8,"Lab 4 circuit splits v into tens and units."],[9,9,"Segment decoder for x."],[11,11,"On every 305 Hz tick …"],[12,12,"… swap which digit is on."],[13,15,"If digit = 0: send the units digit and switch on the rightmost anode."],[16,18,"Else: send the tens digit (0 or 1) and switch on the second anode."],[19,21,"End."]],
+"clk_divider_1hz.v":[[1,1,"Makes a 1 Hz clock. dcm is the locked LED."],[2,2,"Wire for 5 MHz."],[3,3,"Clocking Wizard."],[4,4,"22-bit counter: 2²² = 4,194,304 > 2,499,999."],[5,5,"Clocked by the 5 MHz clock."],[6,6,"Reset sets everything to 0."],[7,7,"After 2,500,000 ticks (0.5 s) flip clk_1hz. Flipping every 0.5 s gives a 1-second period."],[8,8,"Else keep counting."],[9,9,"End."]],
+"lab8_3.v":[[1,1,"Top module."],[2,3,"Wires for the 1 Hz clock and the counter value."],[4,4,"Our 1 Hz divider."],[5,5,"The Binary Counter IP. It counts 0…9 and wraps because we set Restrict Count = 9. <code>.CLK</code> and <code>.Q</code> are its port names."],[6,6,"Show the number on the 7-segment."],[7,7,"Only the rightmost digit on."],[8,8,"End."]],
+"lab9_1.v":[[1,1,"lights = {Red, Yellow, Green}. 1 = lamp on."],[2,2,"Names for the 4 states (2 bits)."],[3,3,"<code>state</code> = now, <code>next_state</code> = where to go."],[4,4,"Timer needs 29 bits for up to 400,000,000 ticks."],[7,7,"Block 1: state register and timer, clocked."],[8,10,"Reset: start in RED and load 4 s."],[11,12,"Timer reached 0: go to the next state."],[13,18,"Load the timer with the length of the NEXT state (1 s = 99,999,999 ticks, 2 s = 199,999,999, 4 s = 399,999,999)."],[19,20,"Otherwise count down."],[21,21,"End of block 1."],[23,24,"Block 2: next-state logic, combinational."],[25,30,"RED → RED_YELLOW → GREEN → YELLOW → RED. <code>default</code> covers the unused case."],[32,33,"Block 3: output logic (Moore: depends on state only)."],[34,39,"Light pattern for each state."],[40,40,"End."]],
+"lab9_2.v":[[1,1,"Same ports as exercise 1."],[2,3,"Build a 1 Hz clock inside: a counter <code>div</code> and the slow clock <code>clk_1hz</code>."],[4,7,"Flip clk_1hz every 50,000,000 ticks (0.5 s)."],[9,9,"State names."],[10,11,"State and a small timer: it holds seconds left minus 1."],[13,14,"State register is clocked by the 1 Hz clock. Reset is asynchronous here (<code>or posedge rst</code>)."],[15,16,"Timer 0: move to the next state."],[17,22,"Load the next state's time minus 1: RED_YELLOW 1 s → 0, GREEN 2 s → 1, YELLOW 1 s → 0, RED 4 s → 3."],[23,24,"Else count down; end."],[26,30,"Next-state logic."],[32,36,"Output logic."],[37,37,"End."]],
+"lab9_3.v":[[1,1,"x = serial input bit, err = 1 when 1011 was seen."],[2,7,"The same 1 Hz clock generator as exercise 2."],[9,10,"State names: S0 nothing, S1 = '1', S2 = '10', S3 = '101', S4 = '1011'."],[11,11,"State and next state, 3 bits."],[13,14,"State register: clocked, asynchronous reset to S0."],[16,17,"Next-state logic."],[18,18,"S0: a 1 starts the pattern (S1), a 0 stays."],[19,19,"S1 ('1'): another 1 keeps '1'; a 0 gives '10'."],[20,20,"S2 ('10'): a 1 gives '101'; a 0 breaks the pattern, go to S0."],[21,21,"S3 ('101'): a 1 completes 1011 (S4); a 0 gives '10' (S2) because the last bits are '10'."],[22,22,"S4: overlap. After 1011 a 1 gives '1' (S1), a 0 gives '10' (S2)."],[23,24,"Safe default; end of case."],[26,26,"Moore output: err is 1 only in S4."],[27,27,"End."]],
+"mult3x3.v":[[1,3,"Ports: clk, reset, start pulse, the two 3-bit numbers, the 6-bit product and a done flag."],[4,4,"Datapath = the registers and adder."],[5,5,"One 7-bit register: carry, accumulator (3), multiplier (3)."],[6,6,"Counts how many shifts are done."],[7,7,"The lowest bit of P is the multiplier bit being tested."],[8,8,"True during the third shift."],[9,9,"Three control signals made by the controller below."],[11,11,"Clocked datapath block."],[12,14,"load: clear the accumulator, put the multiplier in the low 3 bits, set cnt = 0."],[15,16,"add: add the multiplicand to the upper half. Result is 4 bits so the carry is kept."],[17,19,"shift: move the whole register right one place and count it."],[22,22,"The low 6 bits are the answer."],[24,24,"Controller = the FSM."],[25,26,"States and registers: IDLE, TEST, SHIFT, DONE."],[28,29,"State register with synchronous reset."],[31,33,"Next-state block. <code>next = state</code> first = stay unless changed."],[34,34,"IDLE: wait for start."],[35,35,"TEST: always go to SHIFT."],[36,36,"SHIFT: after the third shift go to DONE, else back to TEST."],[37,37,"DONE: a new start begins again."],[38,39,"End of case and block."],[41,41,"load is active when we are waiting and start comes (Mealy: depends on state and input)."],[42,42,"add is active in TEST only if the lowest bit is 1."],[43,43,"shift is active in SHIFT (Moore)."],[44,44,"done is 1 in DONE."],[45,45,"End."]],
+"mult3x3_tb.v":[[1,2,"Time unit and testbench module."],[3,3,"clk, rst, start declared with start values. rst starts at 1 so the design begins reset."],[4,6,"Inputs we drive and outputs we watch."],[8,9,"The design under test."],[11,11,"Clock: flip every 5 ns → 10 ns period = 100 MHz."],[13,13,"A task that runs one multiplication."],[14,15,"Set the two numbers."],[16,17,"Create a one-clock <b>start</b> pulse (change on the falling edge so it is stable at the rising edge)."],[18,18,"<code>wait (done)</code> waits until the design says it is finished."],[19,19,"Print the result."],[20,22,"Pause 20 ns, end of task."],[24,26,"Start at 0, release reset after 12 ns."],[27,30,"Four tests: 7×5, 4×1, 7×4, 7×7."],[31,33,"Finish and end."]]
+};
+
+/* ---- Vivado step generator ---- */
+const VIV={
+ lab2:[{m:"b",f:["lab2_1.v"],top:"lab2_1"},{m:"b",f:["lab2_2.v"],top:"lab2_2"},{m:"b",f:["lab2_3.v"],top:"lab2_3"},{m:"s",f:["lab2_4.v"],top:"lab2_4",tb:"lab2_4_tb",t:100,both:1},{m:"b",f:["lab2_5.v"],top:"lab2_5"},{m:"b",f:["mux2.v","lab2_6.v"],top:"lab2_6"}],
+ lab3:[{m:"s",f:["decoder_3to8_dataflow.v"],top:"decoder_3to8_dataflow",tb:"decoder_3to8_tb",t:50,both:1,tbnote:"The lab gives you the testbench. If you do not have it, write one that counts x from 0 to 7 with <code>#5</code> between values."},{m:"s",f:["decoder_3to8_dataflow.v","decoder_74138_dataflow.v"],top:"decoder_74138_dataflow",tb:"decoder_74138_tb",t:200,both:1,tbnote:"Use the lab testbench, or change x, g1, g2a, g2b every 10 ns."},{m:"b",f:["bcdto7segment_dataflow.v"],top:"bcdto7segment_dataflow"},{m:"b",f:["lab3_4.v"],top:"lab3_4"}],
+ lab4:[{m:"b",f:["lab4_1.v"],top:"lab4_1",extra:["Also add <code>bcdto7segment_dataflow.v</code> from lab 3 to this project (Add Sources → Add Files, or copy-paste into a new file)."]},{m:"b",f:["lab4_2.v"],top:"lab4_2"},{m:"s",f:["mux2.v","comparator.v","circuit_a.v","lab4_3_partA.v","bcdto7segment_dataflow.v","lab4_3.v"],top:"lab4_3_partA",tb:"lab4_3_partA_tb",t:200,both:1,topBoard:"lab4_3",tbnote:"First simulate only <code>lab4_3_partA</code> (set it as top for the simulation). The lab gives you the testbench; or step v from 0 to 15 with <code>#10</code>."}],
+ lab5:[{m:"b",f:["lab5_1.v"],top:"lab5_1",txt:"comp.txt"},{m:"b",f:["lab5_2.v"],top:"lab5_2",txt:"mult.txt"},{m:"b",f:["lab5_3.v"],top:"lab5_3"}],
+ lab6:[{m:"s",f:["add_two_values.v"],top:"add_two_values",tb:"add_two_values_task_tb",t:40},{m:"s",f:["calc_even_parity.v"],top:"calc_even_parity",tb:"calc_even_parity_task_tb",t:40},{m:"s",f:["add_two_values_function.v"],top:"add_two_values_function",tb:"add_two_values_function_tb",t:50,tbnote:"No testbench is printed for this one. Copy the testbench of exercise 1, rename the module, and change the instance to <code>add_two_values_function</code> and the <code>sum</code> wire to <code>[4:0]</code>."},{m:"s",f:["calc_ones.v"],top:"calc_ones",tb:"calc_ones_tb",t:50,tbnote:"Write a small testbench: <code>reg [7:0] ain; wire [3:0] ones;</code>, instantiate calc_ones, then set ain to 0, 8'b1111_1111, 8'b1010_0101 with <code>#10</code> between them."},{m:"t",f:[],tb:"lab6_5_tb",t:150}],
+ lab7:[{m:"t",f:[],tb:"lab7_1_tb",t:20},{m:"t",f:[],tb:"lab7_2_tb",t:40},{m:"b",f:["lab7_3.v"],top:"lab7_3",simopt:1}],
+ lab8:[{m:"b",f:["lab8_1.v"],top:"lab8_1",ip:"clk"},{m:"b",f:["clk_divider.v","bcd_to_7seg_dec.v","lab4_3_partA.v (and its sub-modules from lab 4)","lab8_2.v"],top:"lab8_2",ip:"clk"},{m:"b",f:["clk_divider_1hz.v","bcd_to_7seg_dec.v","lab8_3.v"],top:"lab8_3",ip:"both"}],
+ lab9:[{m:"b",f:["lab9_1.v"],top:"lab9_1"},{m:"b",f:["lab9_2.v"],top:"lab9_2"},{m:"b",f:["lab9_3.v"],top:"lab9_3"}],
+ lab10:[{m:"b",f:["mult3x3.v"],top:"mult3x3",simopt:1},{m:"s",f:["mult3x3.v"],top:"mult3x3",tb:"mult3x3_tb",t:600}]
+};
+function vivSteps(x){
+  const L=[],c=s=>L.push(s),code=s=>"<code>"+s+"</code>";
+  const doSim=x.m==="s"||x.m==="t"||x.both||x.simopt, doBoard=x.m==="b"||x.both;
+  c("<b>Open Vivado 2022.x.</b> On the start page click <b>Create Project</b>, then <b>Next</b>.");
+  c("<b>Project name:</b> a short name without spaces. <b>Project location:</b> a folder path with <b>no spaces and no special characters</b> (for example <code>C:\\pld</code>). Keep <b>Create project subdirectory</b> ticked. <b>Next</b>.");
+  c("<b>Project Type:</b> choose <b>RTL Project</b>. Tick <b>Do not specify sources at this time</b>. <b>Next</b>.");
+  if(doBoard)c("<b>Default Part:</b> open the <b>Boards</b> tab, search <b>Nexys4 DDR</b>, select it, <b>Next</b>. If the board is not listed, use the <b>Parts</b> tab and pick <b>xc7a100tcsg324-1</b>. Click <b>Finish</b>.");
+  else c("<b>Default Part:</b> any part works for simulation. Choose <b>xc7a100tcsg324-1</b> (or the Nexys4 DDR board). Click <b>Finish</b>.");
+  if(x.ip){c("<b>Make the clock IP.</b> Flow Navigator (left) → <b>IP Catalog</b>. Search <b>Clocking Wizard</b> and double-click it.");
+    c("Component Name: <code>clk_wiz_0</code>. <b>Clocking Options</b> tab: primary input frequency <b>100.000 MHz</b>. <b>Output Clocks</b> tab: tick <code>clk_out1</code> and set it to <b>5.000 MHz</b>. Keep <b>reset</b> and <b>locked</b> ticked (Enable Optional Inputs/Outputs). Click <b>OK</b>, then <b>Generate</b> in the dialog that follows, and wait until the IP is listed under <b>IP Sources</b>.");}
+  if(x.ip==="both"){c("<b>Make the counter IP.</b> IP Catalog → search <b>Binary Counter</b> → double-click. Component Name: <code>c_counter_binary_0</code>. <b>Basic</b> tab: Implement using <b>Fabric</b>, Output Width <b>4</b>, Increment value 1. Tick <b>Restrict Count</b>, set Final Count Value <b>9</b> (decimal). <b>OK</b> → <b>Generate</b>.");}
+  if(x.f.length){c("<b>Add the design files.</b> Flow Navigator → <b>Add Sources</b> → <b>Add or create design sources</b> → <b>Next</b> → <b>Create File</b>. File type <b>Verilog</b>. File name: <b>"+x.f.map(n=>n.replace(/\.v.*$/,"")).join(", ")+"</b> (one file at a time). Click <b>OK</b>, repeat for each file, then <b>Finish</b>. In the <i>Define Module</i> dialog click <b>OK</b>, then <b>Yes</b> (we type the module ourselves).");
+    c("<b>Paste the code.</b> In the <b>Sources</b> window double-click each file and paste the matching code from this page: "+x.f.map(code).join(", ")+". Press <b>Ctrl+S</b> after each.");}
+  if(x.txt)c("<b>Add the data file.</b> Create <b>"+x.txt+"</b> in Notepad with the table shown below (one binary word per line). Then <b>Add Sources → Add or create design sources → Add Files</b>, pick it, tick <b>Copy sources into project</b>, <b>Finish</b>. If Vivado offers the file type, choose <b>Memory File</b>. The name in <code>$readmemb(\"...\")</code> must match exactly. If the warning <i>cannot open file</i> appears, write the full path with forward slashes.");
+  (x.extra||[]).forEach(c);
+  if(x.top)c("<b>Set the top module.</b> In <b>Sources → Design Sources</b>, right-click "+code(x.topBoard||x.top)+" → <b>Set as Top</b>. Its name turns bold. If the hierarchy shows errors, fix the red marks first (usually a missing file, a typo or a missing <code>;</code>).");
+  if(doSim){
+    if(x.tb){c("<b>Add the testbench.</b> <b>Add Sources → Add or create simulation sources → Create File</b>, type <b>Verilog</b>, name <b>"+x.tb+"</b>, <b>Finish</b>, <b>OK</b>, <b>Yes</b>. "+(x.tbnote||"Paste the testbench from this page.")+" Save with Ctrl+S.");
+      c("<b>Set the simulation top.</b> In <b>Sources → Simulation Sources → sim_1</b>, right-click <b>"+x.tb+"</b> → <b>Set as Top</b>. (The simulator runs the testbench, not your design.)");}
+    c("<b>Set the run time.</b> Top menu <b>Tools → Settings → Simulation</b> → <b>Simulation</b> tab → <b>xsim.simulate.runtime</b> = <b>"+x.t+"ns</b> → <b>OK</b>. (Or type <code>run "+x.t+" ns</code> in the Tcl console later.)");
+    c("<b>Run it.</b> Flow Navigator → <b>Simulation → Run Simulation → Run Behavioral Simulation</b>. Wait for the waveform window.");
+    c("<b>Read the waveform.</b> Click <b>Zoom Fit</b> (the magnifier with a box) so the whole run is visible. Check each signal against the expected values. Right-click a signal → <b>Radix</b> to show binary, decimal or hex. Text from <code>$display</code> / <code>$monitor</code> appears in the <b>Tcl Console</b> at the bottom.");
+    c("If the result is wrong, edit the code, press <b>Ctrl+S</b>, then click <b>Relaunch</b> (circular arrow in the simulation toolbar). When done: <b>Simulation → Close Simulation</b>.");}
+  if(doBoard){
+    c("<b>Add the constraints.</b> <b>Add Sources → Add or create constraints → Create File</b>, type <b>XDC</b>, name <b>constraints</b>, <b>Finish</b>. Double-click it and paste the generated <b>constraints.xdc</b> box that is under this exercise. Every name inside <code>get_ports { }</code> must be exactly a port name of your top module. Save.");
+    c("<b>Synthesis.</b> Flow Navigator → <b>Run Synthesis</b> → <b>OK</b>. Wait until the top right says <i>Synthesis Complete</i>. In the dialog choose <b>Run Implementation</b> → <b>OK</b>.");
+    c("<b>Implementation.</b> Wait until it says <i>Implementation Complete</i>. In the dialog choose <b>Generate Bitstream</b> → <b>OK</b>. Wait for <i>Bitstream Generation Completed</i>, then choose <b>Open Hardware Manager</b> → <b>OK</b>.");
+    c("<b>Check the messages</b> (bottom <b>Messages</b> tab). A <i>Critical Warning</i> that says <i>no ports matched</i> or <i>unconstrained</i> means a port name in the XDC does not match your code. Fix the name and run again.");
+    c("<b>Connect the board.</b> Plug the micro-USB cable into the <b>PROG/UART</b> port. Slide the power switch (top left of the board) to <b>ON</b>. A red power LED lights.");
+    c("<b>Program it.</b> In <b>Hardware Manager</b> click <b>Open target → Auto Connect</b>. Then click <b>Program device</b> → select <b>xc7a100t_0</b> → keep the .bit file that is filled in → <b>Program</b>. The blue <b>DONE</b> LED lights.");
+    c("<b>Test on the board.</b> Flip the switches / press the buttons and check the LEDs or display against the expected behaviour. To change the design: edit the code, then run synthesis → implementation → bitstream → program again.");}
+  return L;
+}
+function lblBoxes(){
+  $$("script.v").forEach(s=>{const n=s.dataset.n||"",key=Object.keys(LBL).find(k=>n===k||n.startsWith(k+" ")||n.startsWith(k+"("));if(!key)return;
+    const lines=s.textContent.split("\n"),rows=LBL[key].map(r=>{const code=lines.slice(r[0]-1,r[1]).join("\n").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+      return "<tr><td class='lc'><pre>"+(r[0]===r[1]?r[0]:r[0]+"–"+r[1])+"\n</pre></td><td><pre class='lcode'>"+code+"</pre></td><td>"+r[2]+"</td></tr>";}).join("");
+    const d=mk('<details class="how lbl" open><summary>Line by line: what every part does</summary><div class="scroll"><table class="tt lt"><tr><th>#</th><th>Code</th><th>What it does</th></tr>'+rows+"</table></div></details>");s.after(d);});}
+function vivBoxes(){Object.keys(VIV).forEach(id=>$$("#"+id+" .ex").forEach((ex,i)=>{const x=VIV[id][i];if(!x)return;
+  const d=mk('<details class="how viv"><summary>Vivado 2022 — every step for this exercise</summary><ol class="steps">'+vivSteps(x).map(t=>"<li>"+t+"</li>").join("")+"</ol></details>");
+  const first=$("script.v,.cw",ex);if(first)first.before(d);else ex.append(d);}));}
 /* ---------- code boxes ---------- */
 const KW="module|endmodule|input|output|inout|wire|reg|integer|parameter|localparam|assign|always|initial|begin|end|if|else|case|casex|casez|endcase|default|for|forever|task|endtask|function|endfunction|posedge|negedge|or|and|not|nand|nor|xor|xnor|buf|notif1|notif0|bufif0|bufif1|wait|set_property|get_ports";
 const RX=new RegExp("(\\/\\/[^\\n]*|^##[^\\n]*)|(\"(?:[^\"\\\\]|\\\\.)*\")|(\\$\\w+|`\\w+)|(\\d*'[sS]?[bBoOdDhH][0-9a-fA-FxXzZ_?]+|\\b\\d[\\d_]*\\b)|\\b("+KW+")\\b","gm");
@@ -2819,7 +3395,7 @@ function confetti(){const c=$("#cf"),x=c.getContext("2d");c.width=innerWidth;c.h
   (function a(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.r+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore();});if(++f<110)requestAnimationFrame(a);else x.clearRect(0,0,c.width,c.height);})();}
 
 /* ---------- init ---------- */
-deep();xdcBoxes();howSteps();
+deep();xdcBoxes();howSteps();vivBoxes();lblBoxes();
 codeBoxes();
 $$("[data-w]").forEach(el=>{try{W[el.dataset.w](el);}catch(e){console.error("widget",el.dataset.w,e);}});
 $$(".quiz").forEach(quiz);
